@@ -1,0 +1,96 @@
+---
+title: "ICA sibject 101"
+format: html
+jupyter: paths-3.11.8
+---
+
+
+```{python}
+import mne
+import autoreject
+from autoreject import AutoReject
+from autoreject import get_rejection_threshold
+from mne.preprocessing import ICA
+import toml
+import mne_bids
+import re
+from pathlib import Path
+
+mne.viz.set_browser_backend('qt')
+
+config = toml.load("../../.env.toml")
+project_path = config["project"]["path"]
+```
+
+
+```{python}
+fname_path = "/Volumes/ExtremePro/DATA PATHS/DATI_PATHS/Raw_data/PATHS_101_Resting_20191120_022103.mff"
+
+raw = mne.io.read_raw_egi(fname_path, preload=True)
+raw.set_montage('GSN-HydroCel-257', match_alias={'VREF': 'Cz'})
+
+raw_downsampled = raw.copy().crop(
+    tmin=0, tmax=300, include_tmax=True).resample(sfreq=250)
+
+filter_params = {'l_freq': 0.5,
+                 'h_freq': 45,
+                 'h_trans_bandwidth': 5,
+                 'fir_design': 'firwin2',
+                 'phase': 'zero-double'}
+raw_filtered = raw_downsampled.filter(**filter_params)  # removedrifts
+
+# raw.info['line_freq'] = 50.
+# freqs = (50, 100)
+# eeg_picks = mne.pick_types(raw.info, eeg=True)
+
+# raw_notch = raw_filtered.copy().notch_filter(freqs=freqs, picks=eeg_picks)
+raw_filtered.plot_sensors(show_names=True)
+
+_ = mne.viz.plot_raw(raw_filtered,  duration=20.0)
+
+epochs = mne.make_fixed_length_epochs(raw_filtered, duration=3, preload=True)
+# plot the data
+_ = epochs.copy().average().detrend().plot_joint()
+```
+
+```{python}
+ar = autoreject.AutoReject(n_interpolate=[1, 2, 4, 8,16], random_state=11,
+                           n_jobs=1, verbose=True)
+ar.fit(epochs[:20])  # fit on a few epochs to save time
+epochs_ar, reject_log = ar.transform(epochs, return_log=True)
+
+```
+
+```{python}
+epochs_ar.copy().average().detrend().plot_joint();
+```
+
+```{python}
+epochs[reject_log.bad_epochs].plot(scalings=dict(eeg=100e-6))
+reject_log.plot('horizontal')
+
+```
+# ICA
+
+
+```{python}
+# compute ICA
+ica = mne.preprocessing.ICA(random_state=99, n_components=100)
+ica.fit(epochs[~reject_log.bad_epochs])
+
+
+```
+
+```{python}
+# Plot ICA components for inspection
+_ = ica.plot_components()
+```
+
+```{python}
+ica.plot_properties(epochs[~reject_log.bad_epochs])
+```
+
+
+```{python}
+_ = ica.plot_sources(epochs[~reject_log.bad_epochs], show_scrollbars=False)
+```
