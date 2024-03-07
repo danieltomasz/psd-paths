@@ -1,0 +1,30 @@
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - python=3.12.2
+  - blas=*=accelerate
+  - pandas
+  - ipykernel
+  - python-dotenv
+  - seaborn
+  - mne
+  - pip
+  - autoreject
+  - numpy
+  - mne-qt-browser
+  - pyarrow
+  - polars
+  - pyprep
+  - pyopengl
+  - pytorch
+  - onnxruntime
+  - pip:
+    - mne_bids
+    - specparam
+    - great_tables
+    - mne-bids-pipeline
+    - eeglabio
+    - mne_icalabel
+    - meegkit
+
