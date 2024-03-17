@@ -20,7 +20,7 @@ pip-install:
 	$(PYTHON) -m pip install  -r requirements.txt
 	PYDEVD_DISABLE_FILE_VALIDATION=1  $(PYTHON) -m ipykernel install --user --name ${VENV}
 
-conda-install:
+install:
 	$(eval PYTHON_DIST := miniforge3-latest)
 	$(eval VENV := conda-paths-3.12)
 	$(eval CONDA_BIN := ~/.pyenv/versions/${PYTHON_DIST}/bin/conda)

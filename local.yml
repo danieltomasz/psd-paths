@@ -19,6 +19,7 @@ dependencies:
   - pyopengl
   - pytorch
   - onnxruntime
+  - eeglabio
   - pip:
     - mne_bids
     - specparam
@@ -27,4 +28,7 @@ dependencies:
     - eeglabio
     - mne_icalabel
     - meegkit
+    - papermill
+    - jupyterlab-quarto
+    - PyOpenGL-accelerate
 
