@@ -68,11 +68,14 @@ def run_quarto_params(c):
     # set templates and output files
     output_dir = "analysis"
 
-    templates = ["template-raw.ipynb", "template-epochs-autoreject.ipynb"]
+    templates = ["template-raw.ipynb", "template-epochs-autoreject.ipynb",
+                 "template-ica.ipynb"]
+
     # iterate over subjects
     for subject in subjects:
         output_files = [f"sub-{subject}_raw.ipynb",
-                        f"sub-{subject}_epochs-autoreject.ipynb"]
+                        f"sub-{subject}_epochs-autoreject.ipynb",
+                        f"sub-{subject}_ica.ipynb"]
         for template, output_file in zip(templates, output_files):
             print(f"Processing sub-{subject}")
             report = f"notebooks/1-preprocessing/{template}"
