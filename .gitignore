@@ -7,3 +7,4 @@ data/
 */.pytest_cache/
 */.venv/
 .env.toml
+/.quarto/

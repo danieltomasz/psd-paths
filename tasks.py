@@ -5,8 +5,8 @@ Author: Daniel Borek, July 2023
 
 from pathlib import Path
 import tomllib
+import re
 import invoke
-import tomllib
 
 
 VARS = "PYDEVD_DISABLE_FILE_VALIDATION=1"
@@ -21,19 +21,61 @@ project_path = config["project"]["path"]
 
 
 #template = "notebooks/test/test0.ipynb"
-template ="notebooks/1-preprocessing/template.ipynb"
-output_dir = "notebooks/test"
-output_dir = "notebooks/1-parametrized-reports"
+#output_dir = "notebooks/test"
+
+def extract_numbers(bids_paths):
+    # Initialize an empty list to store the numbers
+    numbers = []
+
+    # Get all the child directories
+    for path in bids_paths.glob("*"):
+        if path.is_dir():
+            # Convert the path to a string
+            str_path = str(path)
+
+            # Find all three-digit numbers in the string
+            matches = re.findall(r"\b\d{3}\b", str_path)
+
+            # Add the numbers to the list
+            numbers.extend(matches)
+
+    # Now 'numbers' is a list of all three-digit numbers in the child directory names
+    return sorted(numbers)
 
 
+def run_parametrised_report(c, subject, output_dir, report, output_file):
+    """Basic function to run a parametrised report."""
+    try:
+        if not (Path(output_dir) / output_file).exists():
+            Path(output_dir).mkdir(parents=True, exist_ok=True)
+            c.run(
+                f"quarto render {report} \\"
+                f"-P subject:{subject}  --to ipynb  \\"
+                f"--output {output_file} "
+            )
+    except Exception as e:
+        print(f"Error processing sub-{subject}: {e}")
 
 @invoke.task(default=True)
 def run_quarto_params(c):
-    """Runs a quarto render."""
-    subject = 102
-    output_file = f"sub-{subject}.ipynb"
-    c.run(
-        f"quarto render {template} \\"
-        f"-P subject:{subject}  --to ipynb  \\"
-        f"--output {output_file} --output-dir {output_dir}"
-    )
+    """
+    Run parametrised quarto reports.
+    """
+    # get subjects
+    bids_folder = Path(f"{project_path}/data/raw/BIDS/")
+    subjects = extract_numbers(bids_folder)
+
+    # set templates and output files
+    output_dir = "analysis"
+
+    templates = ["template-raw.ipynb", "template-epochs-autoreject.ipynb"]
+    # iterate over subjects
+    for subject in subjects:
+        output_files = [f"sub-{subject}_raw.ipynb",
+                        f"sub-{subject}_epochs-autoreject.ipynb"]
+        for template, output_file in zip(templates, output_files):
+            print(f"Processing sub-{subject}")
+            report = f"notebooks/1-preprocessing/{template}"
+            run_parametrised_report(c,
+                                    subject, output_dir, report, output_file)
+
