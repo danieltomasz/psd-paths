@@ -19,16 +19,15 @@ dependencies:
   - pyopengl
   - pytorch
   - onnxruntime
-  - eeglabio
   - pip:
     - mne_bids
     - specparam
     - great_tables
     - mne-bids-pipeline
-    - eeglabio
+    - git+https://github.com/jackz314/eeglabio.git
     - mne_icalabel
     - meegkit
     - papermill
     - jupyterlab-quarto
-    - PyOpenGL-accelerate
+
 
