@@ -1,0 +1,52 @@
+[build-system]
+requires = ["flit_core>=3.3"]
+build-backend = "flit_core.buildapi"
+
+[project]
+name = "spectral"
+authors = [{ name = "Daniel Borek", email = "daniel.borek@ugent.be" }]
+readme = "README.md"
+version = "0.0.1.dev0"
+description = "Project for working with MEG data"
+license = { file = "LICENSE" }
+classifiers = ["License :: OSI Approved :: MIT License"]
+
+requires-python = ">=3.10"
+
+dependencies = [
+    "mne",]
+
+[tool.pytest.ini_options]
+pythonpath = [
+    "src"
+]
+
+[tool.black]
+line-length = 88
+target-version = ['py310', 'py311']
+include = '\.pyi?$'
+
+# iSort
+[tool.isort]
+profile = "black"
+line_length = 88
+multi_line_output = 3
+include_trailing_comma = true
+
+
+[tool.flake8]
+ignore = ['E231', 'E241']
+per-file-ignores = [
+    '__init__.py:F401',
+]
+max-line-length = 88
+count = true
+
+
+[tool.pytest-watcher]
+now = false
+delay = 1.0
+runner = "pytest"
+runner_args = ["--picked", "--testmon", "--ignore-glob='test_data_preproc.py'"]
+patterns = ["*.py"]
+ignore_patterns = []

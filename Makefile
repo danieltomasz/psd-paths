@@ -20,6 +20,15 @@ pip-install:
 	$(PYTHON) -m pip install  -r requirements.txt
 	PYDEVD_DISABLE_FILE_VALIDATION=1  $(PYTHON) -m ipykernel install --user --name ${VENV}
 
+install-local:
+	$(eval PYTHON_DIST := miniforge3-latest)
+	$(eval VENV := conda-paths-3.12)
+	$(eval CONDA_BIN := ~/.pyenv/versions/${PYTHON_DIST}/bin/conda)
+	$(eval PYTHON := ~/.pyenv/versions/${VENV}/bin/python)
+	@eval "$$(pyenv init -)" && \
+	pyenv activate ${VENV}; \
+	cd src/Python && TERM=dumb flit install  --symlink --python ${PYTHON} & cd ../..
+
 install:
 	$(eval PYTHON_DIST := miniforge3-latest)
 	$(eval VENV := conda-paths-3.12)
@@ -35,6 +44,8 @@ install:
 	pyenv activate ${VENV}; \
 	pyenv local ${VENV}; \
 	PYDEVD_DISABLE_FILE_VALIDATION=1 ${PYTHON} -m ipykernel install --user --name ${VENV}
+
+
 
 update:
 	$(PYTHON) -m pip install --upgrade -r requirements.txt --upgrade-strategy=eager

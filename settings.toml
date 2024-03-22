@@ -1,0 +1,9 @@
+# setting.toml
+[paths]
+RAW_DIR_PATH = '/Volumes/ExtremePro/DATA PATHS/DATA_PATHS/Raw_data/'
+PROJECT_PATH = '/Users/daniel/PhD/Projects/psd-path'
+FIGURES_PATH = '{project_path}/analysis/figures/sub-{subject}/'
+RAW_PREPROC_PATH = '{project_path}/analysis/data/raw/sub-{subject}/'
+EPOCHS_PREPROC_PATH = '{project_path}/analysis/data/epochs/sub-{subject}/'
+SPECPARAM_PATH = '{project_path}/analysis/data/specparam/'
+EEGLAB_EPOCHS_PATH = '{project_path}/analysis/data/eeglab/'
