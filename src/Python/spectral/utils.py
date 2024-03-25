@@ -7,6 +7,7 @@ from pathlib import Path
 import toml
 from configparser import ConfigParser
 
+from typing import List
 
 
 def print_date_time():
@@ -42,5 +43,27 @@ def read_parameters(project_path: str = 'root_of_your_project',
         else:
             cwd = os.path.dirname(cwd)
             if cwd == '/':  # Reached the root directory
-                raise FileNotFoundError(f"Could not find '{project_path}'or '{settings_file}' in the dir tree.")
+                raise FileNotFoundError(f"Could not find '{settings_file}'")
     return config
+
+
+def config_project(subject: str | int, templates: dict | None = None) -> dict:
+    """ Get the paths for given subject"""
+    if templates is None:
+        templates = {
+            'project_path' : '{project_path}',
+            'figures_path' : '{project_path}/analysis/figures/sub-{subject}/',
+            'raw_preproc_path' : '{project_path}/analysis/data/raw/sub-{subject}/',
+            'epochs_preproc_path' : '{project_path}/analysis/data/epochs/sub-{subject}/',
+            'specparam_path' : '{project_path}/analysis/data/specparam/',
+            'epochs_eeglab' : '{project_path}/analysis/data/eeglab/',
+        }
+
+    config = read_parameters()
+    project_path = config.get("paths", "PROJECT_PATH").strip("'").strip('"')
+    paths_dict = {}
+    for var_name, var_value in templates.items():
+        paths_dict[var_name] = var_value.format(project_path=project_path,
+                                                subject=subject)
+    return paths_dict
+

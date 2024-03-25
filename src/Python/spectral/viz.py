@@ -2,9 +2,10 @@
 from pathlib import Path
 import matplotlib.pyplot as plt
 import mne
+import numpy as np
 
 
-def plot_step(temp, subject,  figure_path, stage="raw", duration=50.0, n_channels=50, fmax=100.0):
+def plot_step(temp, subject,  figures_path, stage="raw", duration=50.0, n_channels=50, fmax=100.0):
     """Plot raw data and PSD of the data"""
     raw_plot = mne.viz.plot_raw(
         temp.copy(),
@@ -14,9 +15,9 @@ def plot_step(temp, subject,  figure_path, stage="raw", duration=50.0, n_channel
         show_scrollbars=False,
         title=f"sub-{subject}_{stage}",
     )
-    Path(figure_path).mkdir(parents=True, exist_ok=True)
+    Path(figures_path).mkdir(parents=True, exist_ok=True)
     raw_plot.savefig(
-        f"{figure_path}/sub-{subject}_{stage}.png", dpi=300, bbox_inches="tight"
+        f"{figures_path}/sub-{subject}_{stage}.png", dpi=300, bbox_inches="tight"
     )
     plt.close()
 
@@ -27,16 +28,17 @@ def plot_step(temp, subject,  figure_path, stage="raw", duration=50.0, n_channel
     ).plot(average=False, picks="eeg", exclude="bads", show=False, axes=ax)
     ax.set_title(f"sub-{subject} {stage} PSD")
     raw_psd.savefig(
-        f"{figure_path}/sub-{subject}_{stage}-psd.png", dpi=300, bbox_inches="tight"
+        f"{figures_path}/sub-{subject}_{stage}-psd.png", dpi=300, bbox_inches="tight"
     )
     fig.show()
 
 
-def plot_epochs(epochs, figure_path, subject, stage="epochs", n_epochs=10, n_channels=10, fmax=100.0):
+def plot_epochs(epochs, figures_path, subject, stage="epochs", n_epochs=10, n_channels=10, fmax=100.0):
     """Plot the  epoch data"""
     epochs_plot = epochs.copy().average().detrend().plot_joint()
+    Path(figures_path).mkdir(parents=True, exist_ok=True)
     epochs_plot.savefig(
-        f"{figure_path}/sub-{subject}_{stage}.png", dpi=300, bbox_inches="tight"
+        f"{figures_path}/sub-{subject}_{stage}.png", dpi=300, bbox_inches="tight"
     )
     mne.viz.plot_epochs(
         epochs=epochs,
@@ -49,13 +51,13 @@ def plot_epochs(epochs, figure_path, subject, stage="epochs", n_epochs=10, n_cha
     )
     epochs_plot_psd = epochs.compute_psd(
         method="welch", picks="eeg", fmax=fmax, exclude="bads"
-    ).plot(average=True, picks="eeg", exclude="bads", show=False)
+    ).plot(average=False, picks="eeg", exclude="bads", show=False)
     epochs_plot_psd.savefig(
-        f"{figure_path}/sub-{subject}_{stage}_psd.png", dpi=300, bbox_inches="tight"
+        f"{figures_path}/sub-{subject}_{stage}_psd.png", dpi=300, bbox_inches="tight"
     )
 
 
-def plot_bad_channels(raw, subject, figure_path):
+def plot_bad_channels(raw, subject, figures_path):
     """Plot the sensor locations"""
     bad_channels = raw.copy().pick(raw.info["bads"])
     bad_channel_plot = bad_channels.plot(
@@ -65,12 +67,37 @@ def plot_bad_channels(raw, subject, figure_path):
     )
     # Path(figure_path).mkdir(parents=True, exist_ok=True)
     bad_channel_plot.savefig(
-        f"{figure_path}/sub-{subject}_{bad_channel_plot}.png",
+        f"{figures_path}/sub-{subject}_bad_channel_plot.png",
         dpi=300,
         bbox_inches="tight",)
     plt.close()
     sensor_plot = raw.plot_sensors(show_names=True)
     sensor_plot.savefig(
-        f"{figure_path}/sub-{subject}_sensors.png", dpi=300, bbox_inches="tight"
+        f"{figures_path}/sub-{subject}_sensors.png", dpi=300, bbox_inches="tight"
     )
     plt.close()
+
+
+def visualise_bad_epochs(reject_log):
+    """Visualise the bad epochs and channels."""
+    bads = np.logical_or(reject_log.labels == 1, reject_log.labels == 2)
+    plt.imshow(bads, cmap="viridis")
+    plt.colorbar(orientation="horizontal", pad=0.1)
+    plt.show()
+
+    print(
+        f"Currently removed number of epochs {
+            np.sum(reject_log.bad_epochs)}"
+    )
+    # print(bads)
+    # print(bads.shape)
+    good_epochs_percentage = (1 - bads.mean(axis=1)) * 100
+
+    # print("Percentage of bad epochs in each epoch:")
+    # display(good_epochs_percentage)
+
+    print("Percentage of good epochs in each  candidate for removal epoch:")
+    for i in range(0, len(good_epochs_percentage)):
+        if good_epochs_percentage[i] < 75:
+            print(f"Epoch {i}: {good_epochs_percentage[i]:.2f}%")
+            # print(f"Epoch {i}: {good_epochs_percentage[i]:.2f}%")

@@ -13,6 +13,8 @@ from autoreject import Ransac  # noqa
 from typing import List
 
 
+from .epochs import create_epochs
+
 # This part could be replaced by read MFF files (set files are just downsampled MFF files saved to the local laptop drive)
 def load_data(subject: str, project_path: str) -> mne.io.Raw:
     """ Load the data from the dataset """
@@ -75,7 +77,8 @@ def zapline_clean(raw, fline, method="line", iter_param=None):
 
 def apply_pyprep(raw: mne.io.Raw) -> List[str]:
     """Apply the pyprep cleaning"""
-    nd = NoisyChannels(raw.copy().resample(125), random_state=1337)
+    temp = raw.copy().resample(125)
+    nd = NoisyChannels(temp, random_state=1337)
     # nd.find_bad_by_correlation(
     #    correlation_secs=1.0, correlation_threshold=0.4, frac_bad=0.01
     # )
