@@ -1,28 +1,28 @@
 channels:
   - conda-forge
-  - bioconda
 dependencies:
-  - python=3.12.2
-  - blas=*=accelerate
-  - pandas
+  - conda-forge::python>=3.12.2
+  - conda-forge::blas=*=accelerate
+  - conda-forge::libblas=*=*accelerate
+  - conda-forge::numpy
+  - conda-forge::pandas
+  - conda-forge::mne
+  - conda-forge::mne-qt-browser
+  - conda-forge::autoreject
+  - conda-forge::pytorch
   - ipykernel
   - python-dotenv
   - seaborn
-  - mne
   - pip
-  - autoreject
-  - numpy
-  - mne-qt-browser
   - pyarrow
   - polars
   - pyprep
   - pyopengl
-  - pytorch
   - onnxruntime
   - flit
   - pip:
     - mne_bids
-    - specparam
+    - specparam>=2.0.0rc1
     - great_tables
     - mne-bids-pipeline
     - git+https://github.com/jackz314/eeglabio.git

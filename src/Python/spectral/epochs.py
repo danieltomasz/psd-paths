@@ -19,7 +19,8 @@ def create_epochs(raw: mne.io.Raw, length: float = 5, overlap: float =1.5):
         tmax=length,
         detrend=1,  # from 0 to 1
         baseline=None,
-        preload=True
+        preload=True,
+        reject_by_annotation=True
     )
 
 

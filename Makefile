@@ -20,14 +20,14 @@ pip-install:
 	$(PYTHON) -m pip install  -r requirements.txt
 	PYDEVD_DISABLE_FILE_VALIDATION=1  $(PYTHON) -m ipykernel install --user --name ${VENV}
 
-install-local:
+local:
 	$(eval PYTHON_DIST := miniforge3-latest)
 	$(eval VENV := conda-paths-3.12)
 	$(eval CONDA_BIN := ~/.pyenv/versions/${PYTHON_DIST}/bin/conda)
 	$(eval PYTHON := ~/.pyenv/versions/${VENV}/bin/python)
 	@eval "$$(pyenv init -)" && \
 	pyenv activate ${VENV}; \
-	cd src/Python && TERM=dumb flit install  --symlink --python ${PYTHON} & cd ../..
+	cd src/Python && TERM=dumb flit install  --symlink --python ${PYTHON} && cd ../..
 
 install:
 	$(eval PYTHON_DIST := miniforge3-latest)
@@ -53,5 +53,3 @@ update:
 download:
 	$(PYTHON) -m pip download -r requirements.txt -d downloads
 
-local:
-	cd src/mnelab && $(PYTHON) -m pip install -e . & cd ../..

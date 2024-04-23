@@ -94,13 +94,15 @@ def run_ica(c):
     subjects = extract_numbers(bids_folder)
 
     # set templates and output files
-    output_dir = "analysis"
+    output_dir = "analysis/last_stage"
 
-    templates = ["template-3-ica.ipynb", "template-4-specparam.ipynb"]
+    templates = [ "template-2-epochs-autoreject.ipynb", "template-3-ica.ipynb", "template-4-specparam.ipynb"]
 
     # iterate over subjects
     for subject in subjects:
-        output_files = [f"sub-{subject}_3-ica.ipynb",
+        output_files = [
+                        f"sub-{subject}_2-epochs-autoreject.ipynb",
+                        f"sub-{subject}_3-ica.ipynb",
                         f"sub-{subject}_4-specparam.ipynb"
                         ]
         for template, output_file in zip(templates, output_files):
@@ -108,3 +110,49 @@ def run_ica(c):
             report = f"notebooks/1-preprocessing/{template}"
             run_parametrised_report(c,
                                     subject, output_dir, report, output_file)
+
+
+@invoke.task()
+def run_specparam(c):
+    """
+    Run parametrised quarto reports.
+    """
+    # get subjects
+    bids_folder = Path(f"{project_path}/data/raw/BIDS/")
+    subjects = extract_numbers(bids_folder)
+
+    # set templates and output files
+    output_dir = "analysis/last_stage"
+
+    template =  "template-4-specparam.ipynb"
+
+    # iterate over subjects
+    for subject in subjects:
+        output_file = f"sub-{subject}_4-specparam.ipynb"
+        print(f"Processing sub-{subject}")
+        report = f"notebooks/1-preprocessing/{template}"
+        run_parametrised_report(c,
+                                subject, output_dir, report, output_file)
+
+
+@invoke.task()
+def pipeline_notch(c):
+    """
+    Run parametrised quarto reports.
+    """
+    # get subjects
+    bids_folder = Path(f"{project_path}/data/raw/BIDS/")
+    subjects = extract_numbers(bids_folder)
+
+    # set templates and output files
+    output_dir = "analysis"
+
+    template =  "template-1-raw-notch-v2.ipynb"
+
+    # iterate over subjects
+    for subject in subjects:
+        output_file = f"sub-{subject}_4-specparam.ipynb"
+        print(f"Processing sub-{subject}")
+        report = f"notebooks/1-preprocessing/{template}"
+        run_parametrised_report(c,
+                                subject, output_dir, report, output_file)

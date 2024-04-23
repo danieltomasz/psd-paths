@@ -9,3 +9,4 @@ data/
 .env.toml
 /.quarto/
 analysis/
+.jupyter/

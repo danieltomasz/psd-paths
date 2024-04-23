@@ -25,7 +25,8 @@ def plot_step(temp, subject,  figures_path, stage="raw", duration=50.0, n_channe
     fig, ax = plt.subplots(figsize=(10, 5))
     raw_psd = temp.compute_psd(
         fmax=fmax, method="welch", picks="eeg", exclude="bads"
-    ).plot(average=False, picks="eeg", exclude="bads", show=False, axes=ax)
+    ).plot(average=False, picks="eeg", exclude="bads", show=False,
+           axes=ax, amplitude=False)
     ax.set_title(f"sub-{subject} {stage} PSD")
     raw_psd.savefig(
         f"{figures_path}/sub-{subject}_{stage}-psd.png", dpi=300, bbox_inches="tight"
@@ -59,6 +60,7 @@ def plot_epochs(epochs, figures_path, subject, stage="epochs", n_epochs=10, n_ch
 
 def plot_bad_channels(raw, subject, figures_path):
     """Plot the sensor locations"""
+    Path(figures_path).mkdir(parents=True, exist_ok=True)
     bad_channels = raw.copy().pick(raw.info["bads"])
     bad_channel_plot = bad_channels.plot(
         duration=300.0,
