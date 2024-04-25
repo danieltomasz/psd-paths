@@ -151,7 +151,7 @@ def pipeline_notch(c):
 
     # iterate over subjects
     for subject in subjects:
-        output_file = f"sub-{subject}_4-specparam.ipynb"
+        output_file = f"sub-{subject}_1-raw-notch-v2.ipynb"
         print(f"Processing sub-{subject}")
         report = f"notebooks/1-preprocessing/{template}"
         run_parametrised_report(c,
