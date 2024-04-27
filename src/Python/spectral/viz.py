@@ -52,10 +52,11 @@ def plot_epochs(epochs, figures_path, subject, stage="epochs", n_epochs=10, n_ch
     )
     epochs_plot_psd = epochs.compute_psd(
         method="welch", picks="eeg", fmax=fmax, exclude="bads"
-    ).plot(average=False, picks="eeg", exclude="bads", show=False)
+    ).plot(average=False, picks="eeg", exclude="bads", show=False, amplitude=False)
     epochs_plot_psd.savefig(
         f"{figures_path}/sub-{subject}_{stage}_psd.png", dpi=300, bbox_inches="tight"
     )
+    return (epochs_plot, epochs_plot_psd)
 
 
 def plot_bad_channels(raw, subject, figures_path):
