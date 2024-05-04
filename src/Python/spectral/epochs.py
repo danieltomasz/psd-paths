@@ -34,14 +34,14 @@ def get_reject_log(epochs, resample=None, consensus=[0.8],
     else:
         eeg_epochs = epochs.copy()
     auto_reject_pre_ica = autoreject.AutoReject(
-        n_interpolate= n_interpolate,
+        n_interpolate=n_interpolate,
         n_jobs=-1,
         random_state=100,
         thresh_method="bayesian_optimization",
         verbose=False,
         # n_interpolate=np.array([0]),
         consensus=consensus,
-    ).fit(eeg_epochs[:20])
+    ).fit(eeg_epochs)
     print("fitting finished")
     _, reject_log = auto_reject_pre_ica.transform(eeg_epochs, return_log=True)
     # print(reject_log.bad_epochs)

@@ -128,3 +128,26 @@ def pipeline_notch(c):
         report = f"notebooks/1-preprocessing/{template}"
         run_parametrised_report(c,
                                 subject, output_dir, report, output_file)
+
+
+@invoke.task()
+def final_ica(c):
+    """
+    Run parametrised quarto reports.
+    """
+    # get subjects
+    bids_folder = Path(f"{project_path}/data/raw/BIDS/")
+    subjects = extract_numbers(bids_folder)
+
+    # set templates and output files
+    output_dir = "analysis"
+
+    template =  "template3-FinalisingICA.ipynb"
+
+    # iterate over subjects
+    for subject in subjects:
+        output_file = f"sub-{subject}_3-FinalisingICA.ipynb"
+        print(f"Processing sub-{subject}")
+        report = f"notebooks/1-preprocessing/{template}"
+        run_parametrised_report(c,
+                                subject, output_dir, report, output_file)

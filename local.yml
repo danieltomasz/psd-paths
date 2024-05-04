@@ -10,6 +10,7 @@ dependencies:
   - conda-forge::mne-qt-browser
   - conda-forge::autoreject
   - conda-forge::pytorch
+  - conda-forge::ipympl
   - ipykernel
   - python-dotenv
   - seaborn
