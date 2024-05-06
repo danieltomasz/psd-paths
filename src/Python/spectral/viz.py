@@ -41,7 +41,7 @@ def plot_epochs(epochs, figures_path, subject, stage="epochs", n_epochs=10, n_ch
     epochs_plot.savefig(
         f"{figures_path}/sub-{subject}_{stage}.png", dpi=300, bbox_inches="tight"
     )
-    mne.viz.plot_epochs(
+    epochs_timeseries = mne.viz.plot_epochs(
         epochs=epochs,
         picks="eeg",
         show=False,
@@ -56,7 +56,7 @@ def plot_epochs(epochs, figures_path, subject, stage="epochs", n_epochs=10, n_ch
     epochs_plot_psd.savefig(
         f"{figures_path}/sub-{subject}_{stage}_psd.png", dpi=300, bbox_inches="tight"
     )
-    return (epochs_plot, epochs_plot_psd)
+    return (epochs_plot, epochs_timeseries, epochs_plot_psd)
 
 
 def plot_bad_channels(raw, subject, figures_path):
