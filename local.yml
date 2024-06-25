@@ -1,7 +1,7 @@
 channels:
   - conda-forge
 dependencies:
-  - conda-forge::python>=3.12.2
+  - conda-forge::python>=3.12.3
   - conda-forge::blas=*=accelerate
   - conda-forge::libblas=*=*accelerate
   - conda-forge::numpy
@@ -11,6 +11,7 @@ dependencies:
   - conda-forge::autoreject
   - conda-forge::pytorch
   - conda-forge::ipympl
+  - conda-forge::mnelab
   - ipykernel
   - python-dotenv
   - seaborn
@@ -22,8 +23,9 @@ dependencies:
   - onnxruntime
   - flit
   - pip:
+    - scipy>=1.14.0rc2
     - mne_bids
-    - specparam>=2.0.0rc1
+    - specparam>=2.0.0rc2
     - great_tables
     - mne-bids-pipeline
     - git+https://github.com/jackz314/eeglabio.git
@@ -31,5 +33,6 @@ dependencies:
     - meegkit
     - papermill
     - jupyterlab-quarto
+    - https://github.com/hoechenberger/mne-python-stubs/archive/refs/heads/main.zip
 
 

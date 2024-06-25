@@ -45,7 +45,11 @@ install:
 	pyenv local ${VENV}; \
 	PYDEVD_DISABLE_FILE_VALIDATION=1 ${PYTHON} -m ipykernel install --user --name ${VENV}
 
-
+cc:
+	@echo "Cleaning cache"
+	$(eval PYTHON_DIST := miniforge3-latest)
+	$(eval CONDA_BIN := ~/.pyenv/versions/${PYTHON_DIST}/bin/conda)
+	${CONDA_BIN}  clean -i
 
 update:
 	$(PYTHON) -m pip install --upgrade -r requirements.txt --upgrade-strategy=eager

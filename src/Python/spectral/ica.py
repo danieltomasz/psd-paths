@@ -2,13 +2,12 @@ from mne_icalabel import label_components
 from mne.preprocessing import ICA
 
 
-
 def compute_ica(
     eeg_data,
     reject_log=None,
     n_components=0.999,
     method="picard",
-    random_state=99,
+    random_state: int = 99,
 ):
     """Compute ICA on the data without really bad epochs"""
     ica = ICA(
@@ -99,8 +98,9 @@ def plot_removed_components(
         if label in chosen_components:
             ica_plot = ica.plot_sources(eeg_data, show_scrollbars=False, picks=indices)
             print(label, indices)
-            figs = ica.plot_properties(eeg_data, picks=indices,
-                                       psd_args={"fmax": 100.0})
+            figs = ica.plot_properties(
+                eeg_data, picks=indices, psd_args={"fmax": 100.0}
+            )
 
             for fig, ind in zip(figs, indices):
                 # fig = ica.plot_properties(eeg_data, picks=ind)

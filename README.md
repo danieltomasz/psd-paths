@@ -7,4 +7,6 @@ source evn_name/bin/activate
 pip3 install -r requirement.txt
 ```
 
-or  install pyenv and create via makefil
+or  install pyenv and create via makefile
+
+# Analysis steps

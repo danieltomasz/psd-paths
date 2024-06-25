@@ -10,3 +10,11 @@ data/
 /.quarto/
 analysis/
 .jupyter/
+notebooks/test/
+matlab/
+archive/
+analysis/
+.vscode/
+bad_subjects/
+**/.ipynb_checkpoints/
+analysis copy/

@@ -1,8 +1,9 @@
 import mne
 import autoreject
+from mne import Epochs
 
 
-def create_epochs(raw: mne.io.Raw, length: float = 5, overlap: float =1.5):
+def create_epochs(raw: mne.io.Raw, length: float = 5, overlap: float = 1.5):
     """Create epochs from raw data"""
     events = mne.make_fixed_length_events(
         raw=raw,
@@ -12,7 +13,7 @@ def create_epochs(raw: mne.io.Raw, length: float = 5, overlap: float =1.5):
         overlap=overlap,
         first_samp=False,
     )
-    return mne.Epochs(
+    epochs = Epochs(
         raw=raw,
         events=events,
         tmin=0,
@@ -20,12 +21,12 @@ def create_epochs(raw: mne.io.Raw, length: float = 5, overlap: float =1.5):
         detrend=1,  # from 0 to 1
         baseline=None,
         preload=True,
-        reject_by_annotation=True
+        reject_by_annotation=True,
     )
+    return epochs
 
 
-def get_reject_log(epochs, resample=None, consensus=[0.8],
-                   n_interpolate=None):
+def get_reject_log(epochs, resample=None, consensus=[0.8], n_interpolate=None):
     """Get reject log from epochs"""
     if n_interpolate is None:
         n_interpolate = [1, 2, 16, 32, 64, 128]
