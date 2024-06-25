@@ -10,3 +10,9 @@ pip3 install -r requirement.txt
 or  install pyenv and create via makefile
 
 # Analysis steps
+
+EHi h
+
+copy interpolated epochs itnp final_results
+
+```bash

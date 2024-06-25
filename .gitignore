@@ -18,3 +18,4 @@ analysis/
 bad_subjects/
 **/.ipynb_checkpoints/
 analysis copy/
+**.fif

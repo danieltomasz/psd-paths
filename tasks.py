@@ -20,8 +20,9 @@ with open(".env.toml", "rb") as toml_file:
 project_path = config["project"]["path"]
 
 
-#template = "notebooks/test/test0.ipynb"
-#output_dir = "notebooks/test"
+# template = "notebooks/test/test0.ipynb"
+# output_dir = "notebooks/test"
+
 
 def extract_numbers(bids_paths):
     # Initialize an empty list to store the numbers
@@ -56,6 +57,7 @@ def run_parametrised_report(c, subject, output_dir, report, output_file):
     except Exception as e:
         print(f"Error processing sub-{subject}: {e}")
 
+
 @invoke.task(default=True)
 def run_quarto_params(c):
     """
@@ -68,20 +70,18 @@ def run_quarto_params(c):
     # set templates and output files
     output_dir = "analysis"
 
-    templates = ["template-1-raw-notch-v2.ipynb",
-                 "template-2-ica-specparam-v2.ipynb"]
+    templates = ["template-1-raw-notch-v2.ipynb", "template-2-ica-specparam-v2.ipynb"]
 
     # iterate over subjects
     for subject in subjects:
-        output_files = [f"sub-{subject}_1-raw-notch-v2.ipynb",
-                        f"sub-{subject}_2-ica-specparam-v2.ipynb",
-                        ]
+        output_files = [
+            f"sub-{subject}_1-raw-notch-v2.ipynb",
+            f"sub-{subject}_2-ica-specparam-v2.ipynb",
+        ]
         for template, output_file in zip(templates, output_files):
             print(f"Processing sub-{subject}")
             report = f"notebooks/1-preprocessing/{template}"
-            run_parametrised_report(c,
-                                    subject, output_dir, report, output_file)
-
+            run_parametrised_report(c, subject, output_dir, report, output_file)
 
 
 @invoke.task()
@@ -96,15 +96,14 @@ def run_specparam(c):
     # set templates and output files
     output_dir = "analysis/last_stage"
 
-    template =  "template-4-specparam.ipynb"
+    template = "template-4-specparam.ipynb"
 
     # iterate over subjects
     for subject in subjects:
         output_file = f"sub-{subject}_4-specparam.ipynb"
         print(f"Processing sub-{subject}")
         report = f"notebooks/1-preprocessing/{template}"
-        run_parametrised_report(c,
-                                subject, output_dir, report, output_file)
+        run_parametrised_report(c, subject, output_dir, report, output_file)
 
 
 @invoke.task()
@@ -119,15 +118,14 @@ def pipeline_notch(c):
     # set templates and output files
     output_dir = "analysis"
 
-    template =  "template-1-raw-notch-v2.ipynb"
+    template = "template-1-raw-notch-v2.ipynb"
 
     # iterate over subjects
     for subject in subjects:
         output_file = f"sub-{subject}_1-raw-notch-v2.ipynb"
         print(f"Processing sub-{subject}")
         report = f"notebooks/1-preprocessing/{template}"
-        run_parametrised_report(c,
-                                subject, output_dir, report, output_file)
+        run_parametrised_report(c, subject, output_dir, report, output_file)
 
 
 @invoke.task()
@@ -142,15 +140,14 @@ def final_ica(c):
     # set templates and output files
     output_dir = "analysis"
 
-    template =  "template-3-FinalisingICA.ipynb"
+    template = "template-3-FinalisingICA.ipynb"
 
     # iterate over subjects
     for subject in subjects:
         output_file = f"sub-{subject}_3-FinalisingICA.ipynb"
         print(f"Processing sub-{subject}")
         report = f"notebooks/1-preprocessing/{template}"
-        run_parametrised_report(c,
-                                subject, output_dir, report, output_file)
+        run_parametrised_report(c, subject, output_dir, report, output_file)
 
 
 @invoke.task()
@@ -171,5 +168,4 @@ def final_specparam(c):
         output_file = f"sub-{subject}_4-specparam.ipynb"
         print(f"Processing sub-{subject}")
         report = f"notebooks/1-preprocessing/{template}"
-        run_parametrised_report(c,
-                                subject, output_dir, report, output_file)
+        run_parametrised_report(c, subject, output_dir, report, output_file)
