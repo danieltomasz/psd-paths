@@ -19,3 +19,7 @@ bad_subjects/
 **/.ipynb_checkpoints/
 analysis copy/
 **.fif
+.mypy_cache/
+.pytest_cache/
+results_WIP/
+src/spectral/spectral.egg-info/

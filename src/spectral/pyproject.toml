@@ -1,0 +1,102 @@
+[build-system]
+requires = ["setuptools>=61",  "setuptools_scm[toml]>=6.2"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "spectral"
+authors = [{ name = "Daniel Borek", email = "daniel.borek@ugent.be" }]
+readme = "README.md"
+version = "0.0.1.dev0"
+description = "Project for working with MEG  and EEG data"
+license = { file = "LICENSE" }
+classifiers = ["License :: OSI Approved :: MIT License"]
+
+requires-python = ">=3.10"
+
+dependencies = [
+    "mne",
+    "specparam>=2.0.0rc1",
+    "numpy",
+    "pandas",]
+
+
+[tool.setuptools.packages.find]
+include = ["spectral*"]
+namespaces = false
+
+[tool.pytest.ini_options]
+pythonpath = [
+    "."
+]
+addopts = "-v"
+testpaths = ["docs"]
+
+[tool.black]
+line-length = 88
+target-version = ['py310', 'py311']
+include = '\.pyi?$'
+
+# iSort
+[tool.isort]
+profile = "black"
+line_length = 88
+multi_line_output = 3
+include_trailing_comma = true
+
+
+[tool.flake8]
+ignore = ['E231', 'E241']
+per-file-ignores = [
+    '__init__.py:F401',
+]
+max-line-length = 88
+count = true
+
+
+[tool.pytest-watcher]
+now = false
+delay = 1.0
+runner = "pytest"
+runner_args = ["--picked", "--testmon", "--ignore-glob='test_data_preproc.py'"]
+patterns = ["*.py"]
+ignore_patterns = []
+
+[tool.ruff]
+exclude = [
+    ".bzr",
+    ".direnv",
+    ".eggs",
+    ".git",
+    ".git-rewrite",
+    ".hg",
+    ".ipynb_checkpoints",
+    ".mypy_cache",
+    ".nox",
+    ".pants.d",
+    ".pyenv",
+    ".pytest_cache",
+    ".pytype",
+    ".ruff_cache",
+    ".svn",
+    ".tox",
+    ".venv",
+    ".vscode",
+    "__pypackages__",
+    "_build",
+    "buck-out",
+    "build",
+    "dist",
+    "node_modules",
+    "site-packages",
+    "venv",
+]
+
+# Same as Black.
+line-length = 88
+indent-width = 4
+
+[tool.ruff.lint]
+ignore = ["E302","E265"]
+
+[tool.ruff.format]
+ignore = ["E302","E265"]

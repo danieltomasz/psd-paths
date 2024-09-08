@@ -2,7 +2,6 @@
 .PHONY: install
 
 PROJECT?=paths
-VERSION?=3.11.8
 
 VENV=${PROJECT}-${VERSION}
 VENV_DIR=$(shell pyenv root)/versions/${VENV}
@@ -34,6 +33,7 @@ install:
 	$(eval VENV := conda-paths-3.12)
 	$(eval CONDA_BIN := ~/.pyenv/versions/${PYTHON_DIST}/bin/conda)
 	$(eval PYTHON := ~/.pyenv/versions/${VENV}/bin/python)
+	
 	@echo "Installing $(VENV) with $(PYTHON_DIST)"
 	env PYTHON_CONFIGURE_OPTS=--enable-shared pyenv install --skip-existing ${PYTHON_DIST}
 	${CONDA_BIN} update -n base -c conda-forge conda

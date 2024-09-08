@@ -5,7 +5,18 @@
         "**/.hg": true,
         "**/CVS": true,
         "**/.DS_Store": true,
-        "**/Thumbs.db": true
+        "**/Thumbs.db": true,
+        "**/.mypy_cache": true,
+        ".mypy_cache": true,
+        "**/.pytest_cache": true,
+        ".pytest_cache": true,
+        "**/.vscode": true,
+        ".vscode": true,
+        "**/.quarto": true,
+        ".quarto": true,
+        "**/.jupyter": true,
+        ".jupyter": true
     },
-    "explorerExclude.backup": {}
+    "explorerExclude.backup": {},
+    "makefile.configureOnOpen": false
 }
