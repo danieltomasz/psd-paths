@@ -51,20 +51,29 @@ The EEG was recorded using 256 channels. However, certain channels were identifi
 ![Channels used for analysis](figures/eeg_montage_plot.png){#fig-channels width=80%}
 
 
-## Subject
+##  Preprocessing and EEG analysis
 Initially 48 subjects  were included into  this analysis. 
-EEG  data were analysed using MNE Python (@gramfort2013MEGEEGData, version 1.7). Data were recorded with the resolution 1000 Hz and  during the analysis resampled to 250 Hz and  notch filtered at 50 Hz to eleminate line power noise. A bandpass filter between 1 and 40 Hz was applied  using FIR filter (firwin2 method). Bad channels were identified using the Python implementation of the Preprocessing Pipeline (PREP, @bigdely-shamlo2015PREPPipelineStandardized), were temporarily excluded from analysis and  later extrapolated after performing Independent Component Analysis (ICA).
+EEG  data were analysed using MNE Python (@gramfort2013MEGEEGData, version 1.7). Data were recorded with the resolution 1000 Hz and  during the analysis resampled to 250 Hz and  notch filtered at 50 Hz to eleminate line power noise. A bandpass filter between 1 and 40 Hz was applied  using FIR filter. Bad channels were identified using the Python implementation of the Preprocessing Pipeline (PREP, @bigdely-shamlo2015PREPPipelineStandardized), were temporarily excluded from analysis and  later extrapolated after performing Independent Component Analysis (ICA).
 
 Dataset was epoched into 5s intervals, with 3s overlap between epochs (1.5s on each side).
 The Autoreject library [@jas2017AutorejectAutomatedArtifact] was used to detect and remove epochs containg  huge artifacts (epochs identified as bad on more than 40% bad channels were discarded). ICA was  performed on the data using a variable number of the components determined by capturing 99% of cumulative variance. The picard method was employed
-with the settings `fit_params=dict(ortho=False, extended=True)`, which aligns with `FastICA` algorithm utilizing the infomax approach (?need to double check)).
+with the settings `fit_params=dict(ortho=False, extended=True)`, which aligns with `FastICA` algorithm [@ablin2018FasterIndependentComponent].
 
 The ICA components were visually inspected and those identified as artifacts  were removed. The data were then reconstructed using the remaining components.
 For the further analysis, we computed the power spectral density (PSD) using the Welch method. PSD calculations were performed for each epoch and then averaged across epochs. The specparam algorithm (formerly known as fooof, [@donoghue2020ParameterizingNeuralPower]) was applied with the following parameters: freq_range = [1, 40], peak_width_limits = [1, 6], min_peak_height = 0.15, (? need to decided if 0.05 or 0.15) peak_threshold = 2.0, and max_n_peaks = 6.
 
-Similarly to @mckeown2023TestretestReliabilitySpectral, we  excluded participants with specparam model fits < 0.9 R2 on more than 50% of the channels. Given the above criterium 4 subjects were identified as those to be exluded from analysis: `102 103 126 151`. (Check 139?)
+Similarly to @mckeown2023TestretestReliabilitySpectral, we  excluded participants with specparam model fits < 0.9 R2 on more than 50% of the channels. Given the above criterium 4 subjects were identified as those to be exluded from analysis: `102 103 126 151`. 
+<!-- (Check 139?) -->
 
+## Results
+I manually checked data:
+
+- really  good quality 101, 105, 107,112 , 113,114, 115, 122, 123, 127, 128 , 131, 134, 135, 136, 137, 139 , 142, 143, 144, 149, 152
+- good 108, 116, 124, 125, 138 , 145, 146, 148
+
+- medium quality 104, 106, 109 , 110 , 111, 118, 119, 120, 121, 129, 132, 140, 147, 150
 
 # Internal discussion
+
 
 # Bibliography

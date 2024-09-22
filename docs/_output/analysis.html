@@ -3076,7 +3076,8 @@ text-indent: 1em;
   <ul>
   <li><a href="#analysis" id="toc-analysis" class="nav-link active" data-scroll-target="#analysis">Analysis</a>
   <ul class="collapse">
-  <li><a href="#subject" id="toc-subject" class="nav-link" data-scroll-target="#subject">Subject</a></li>
+  <li><a href="#preprocessing-and-eeg-analysis" id="toc-preprocessing-and-eeg-analysis" class="nav-link" data-scroll-target="#preprocessing-and-eeg-analysis">Preprocessing and EEG analysis</a></li>
+  <li><a href="#results" id="toc-results" class="nav-link" data-scroll-target="#results">Results</a></li>
   </ul></li>
   <li><a href="#internal-discussion" id="toc-internal-discussion" class="nav-link" data-scroll-target="#internal-discussion">Internal discussion</a></li>
   <li><a href="#bibliography" id="toc-bibliography" class="nav-link" data-scroll-target="#bibliography">Bibliography</a></li>
@@ -3103,12 +3104,21 @@ Figure 1: Channels used for analysis
 </figcaption>
 </figure>
 </div>
-<section id="subject" class="level2">
-<h2 class="anchored" data-anchor-id="subject">Subject</h2>
-<p>Initially 48 subjects were included into this analysis. EEG data were analysed using MNE Python (<span class="citation" data-cites="gramfort2013MEGEEGData">Gramfort et al. (<a href="#ref-gramfort2013MEGEEGData" role="doc-biblioref">2013</a>)</span>, version 1.7). Data were recorded with the resolution 1000 Hz and during the analysis resampled to 250 Hz and notch filtered at 50 Hz to eleminate line power noise. A bandpass filter between 1 and 40 Hz was applied using FIR filter (firwin2 method). Bad channels were identified using the Python implementation of the Preprocessing Pipeline (PREP, <span class="citation" data-cites="bigdely-shamlo2015PREPPipelineStandardized">Bigdely-Shamlo et al. (<a href="#ref-bigdely-shamlo2015PREPPipelineStandardized" role="doc-biblioref">2015</a>)</span>), were temporarily excluded from analysis and later extrapolated after performing Independent Component Analysis (ICA).</p>
-<p>Dataset was epoched into 5s intervals, with 3s overlap between epochs (1.5s on each side). The Autoreject library <span class="citation" data-cites="jas2017AutorejectAutomatedArtifact">(<a href="#ref-jas2017AutorejectAutomatedArtifact" role="doc-biblioref">Jas et al. 2017</a>)</span> was used to detect and remove epochs containg huge artifacts (epochs identified as bad on more than 40% bad channels were discarded). ICA was performed on the data using a variable number of the components determined by capturing 99% of cumulative variance. The picard method was employed with the settings <code>fit_params=dict(ortho=False, extended=True)</code>, which aligns with <code>FastICA</code> algorithm utilizing the infomax approach (?need to double check)).</p>
+<section id="preprocessing-and-eeg-analysis" class="level2">
+<h2 class="anchored" data-anchor-id="preprocessing-and-eeg-analysis">Preprocessing and EEG analysis</h2>
+<p>Initially 48 subjects were included into this analysis. EEG data were analysed using MNE Python (<span class="citation" data-cites="gramfort2013MEGEEGData">Gramfort et al. (<a href="#ref-gramfort2013MEGEEGData" role="doc-biblioref">2013</a>)</span>, version 1.7). Data were recorded with the resolution 1000 Hz and during the analysis resampled to 250 Hz and notch filtered at 50 Hz to eleminate line power noise. A bandpass filter between 1 and 40 Hz was applied using FIR filter. Bad channels were identified using the Python implementation of the Preprocessing Pipeline (PREP, <span class="citation" data-cites="bigdely-shamlo2015PREPPipelineStandardized">Bigdely-Shamlo et al. (<a href="#ref-bigdely-shamlo2015PREPPipelineStandardized" role="doc-biblioref">2015</a>)</span>), were temporarily excluded from analysis and later extrapolated after performing Independent Component Analysis (ICA).</p>
+<p>Dataset was epoched into 5s intervals, with 3s overlap between epochs (1.5s on each side). The Autoreject library <span class="citation" data-cites="jas2017AutorejectAutomatedArtifact">(<a href="#ref-jas2017AutorejectAutomatedArtifact" role="doc-biblioref">Jas et al. 2017</a>)</span> was used to detect and remove epochs containg huge artifacts (epochs identified as bad on more than 40% bad channels were discarded). ICA was performed on the data using a variable number of the components determined by capturing 99% of cumulative variance. The picard method was employed with the settings <code>fit_params=dict(ortho=False, extended=True)</code>, which aligns with <code>FastICA</code> algorithm <span class="citation" data-cites="ablin2018FasterIndependentComponent">(<a href="#ref-ablin2018FasterIndependentComponent" role="doc-biblioref">Ablin, Cardoso, and Gramfort 2018</a>)</span>.</p>
 <p>The ICA components were visually inspected and those identified as artifacts were removed. The data were then reconstructed using the remaining components. For the further analysis, we computed the power spectral density (PSD) using the Welch method. PSD calculations were performed for each epoch and then averaged across epochs. The specparam algorithm (formerly known as fooof, <span class="citation" data-cites="donoghue2020ParameterizingNeuralPower">(<a href="#ref-donoghue2020ParameterizingNeuralPower" role="doc-biblioref">Donoghue et al. 2020</a>)</span>) was applied with the following parameters: freq_range = [1, 40], peak_width_limits = [1, 6], min_peak_height = 0.15, (? need to decided if 0.05 or 0.15) peak_threshold = 2.0, and max_n_peaks = 6.</p>
-<p>Similarly to <span class="citation" data-cites="mckeown2023TestretestReliabilitySpectral">McKeown et al. (<a href="#ref-mckeown2023TestretestReliabilitySpectral" role="doc-biblioref">2023</a>)</span>, we excluded participants with specparam model fits &lt; 0.9 R2 on more than 50% of the channels. Given the above criterium 4 subjects were identified as those to be exluded from analysis: <code>102 103 126 151</code>. (Check 139?)</p>
+<p>Similarly to <span class="citation" data-cites="mckeown2023TestretestReliabilitySpectral">McKeown et al. (<a href="#ref-mckeown2023TestretestReliabilitySpectral" role="doc-biblioref">2023</a>)</span>, we excluded participants with specparam model fits &lt; 0.9 R2 on more than 50% of the channels. Given the above criterium 4 subjects were identified as those to be exluded from analysis: <code>102 103 126 151</code>. <!-- (Check 139?) --></p>
+</section>
+<section id="results" class="level2">
+<h2 class="anchored" data-anchor-id="results">Results</h2>
+<p>I manually checked data:</p>
+<ul>
+<li><p>really good quality 101, 105, 107,112 , 113,114, 115, 122, 123, 127, 128 , 131, 134, 135, 136, 137, 139 , 142, 143, 144, 149, 152</p></li>
+<li><p>good 108, 116, 124, 125, 138 , 145, 146, 148</p></li>
+<li><p>medium quality 104, 106, 109 , 110 , 111, 118, 119, 120, 121, 129, 132, 140, 147, 150</p></li>
+</ul>
 </section>
 </section>
 <section id="internal-discussion" class="level1">
@@ -3120,6 +3130,9 @@ Figure 1: Channels used for analysis
 </section>
 
 <div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">Bibliography</h2><div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list">
+<div id="ref-ablin2018FasterIndependentComponent" class="csl-entry" role="listitem">
+Ablin, Pierre, Jean-François Cardoso, and Alexandre Gramfort. 2018. <span>“Faster <span>Independent Component Analysis</span> by <span>Preconditioning With Hessian Approximations</span>.”</span> <em>IEEE Transactions on Signal Processing</em> 66 (15): 4040–49. <a href="https://doi.org/10.1109/TSP.2018.2844203">https://doi.org/10.1109/TSP.2018.2844203</a>.
+</div>
 <div id="ref-bigdely-shamlo2015PREPPipelineStandardized" class="csl-entry" role="listitem">
 Bigdely-Shamlo, Nima, Tim Mullen, Christian Kothe, Kyung-Min Su, and Kay A. Robbins. 2015. <span>“The <span>PREP</span> Pipeline: Standardized Preprocessing for Large-Scale <span>EEG</span> Analysis.”</span> <em>Frontiers in Neuroinformatics</em> 9 (June). <a href="https://doi.org/10.3389/fninf.2015.00016">https://doi.org/10.3389/fninf.2015.00016</a>.
 </div>

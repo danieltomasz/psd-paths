@@ -31,4 +31,4 @@ dependencies:
       - git+https://github.com/jackz314/eeglabio.git
       - meegkit
       - papermill
-      - -e ./src/spectral[test]
+      - -e ./src/spectral[test] --no-deps
