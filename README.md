@@ -3,12 +3,28 @@
 Code  used for analysis of restring state EEG data and extracting PSD features.
 
 ## Installation
+Download the files with
 
-Run the command below to install the conda environment with all necessary packages for the analysis (you need to have conda installed, you can name it differently than `conda-paths-3.12`):
+```
+git clone --depth 1 --branch pipeline git@github.com:danieltomasz/psd-paths.git
+```
+then go to the folder you download  the repo and open terminal in it.
+
+
+Assuming that you have conda installed, run the command below to install the conda environment with all necessary packages for the analysis (you need to have conda installed, you can name it differently than `conda-paths-3.12`):
+
+```bash
+conda env create -n conda-paths-3.12 -f local_noARM.yml
+```
+If you are runninhg Apple Sillivon computer and can use Apple Sillicon framerwork use: 
+
 
 ```bash
 conda env create -n conda-paths-3.12 -f local.yml
 ```
+
+
+
 
 ## How to use scripts and notebooks for analysis of new subjects
 
@@ -29,10 +45,3 @@ pip3 install -r requirement.txt
 
 # Analysis steps
 
-# My brainstorming
-
-I am struggling with  complex analysis of EEG data, I made mistake not dividing my analysis into stage and not clearly dividing visualisation from  actual analysis
-
-- I need to have a list of exluded subjects on which I dont  run analysis
-
-# What is lean solution here
