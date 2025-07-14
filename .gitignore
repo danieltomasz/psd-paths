@@ -8,7 +8,6 @@ data/
 */.venv/
 .env.toml
 /.quarto/
-analysis/
 .jupyter/
 notebooks/test/
 matlab/
