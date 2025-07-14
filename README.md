@@ -8,8 +8,10 @@ Download the files with
 ```
 git clone --depth 1 --branch pipeline git@github.com:danieltomasz/psd-paths.git
 ```
+then go to the folder you download  the repo and open terminal in it.
 
-Run the command below to install the conda environment with all necessary packages for the analysis (you need to have conda installed, you can name it differently than `conda-paths-3.12`):
+
+Assuming that you have conda installed, run the command below to install the conda environment with all necessary packages for the analysis (you need to have conda installed, you can name it differently than `conda-paths-3.12`):
 
 ```bash
 conda env create -n conda-paths-3.12 -f local_noARM.yml
