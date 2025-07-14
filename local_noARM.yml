@@ -1,0 +1,33 @@
+channels:
+  - conda-forge
+dependencies:
+  - conda-forge::python>=3.12.5,<3.13
+  - conda-forge::pandas
+  - conda-forge::mne-qt-browser
+  - conda-forge::autoreject
+  - conda-forge::pytorch
+  - conda-forge::ipympl
+  - conda-forge::mnelab
+  - conda-forge::mne-icalabel
+  - conda-forge::pyopengl
+  - conda-forge::onnxruntime
+  - ipykernel
+  - python-dotenv
+  - seaborn
+  - pip
+  - pyarrow
+  - polars
+  - pyprep
+  - great_tables
+  - conda-forge:mne<1.9
+  - conda-forge::numpy<2.3
+  - conda-forge:numba
+  - conda-forge::mne-bids
+  - conda-forge::scipy
+  - conda-forge::mne-bids-pipeline
+  - conda-forge::eeglabio
+  - conda-forge::papermill
+  - conda-forge::meegkit
+  - pip:
+      - specparam>=2.0.0rc2 
+      - -e ./src/spectral[test]
