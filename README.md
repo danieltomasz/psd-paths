@@ -3,6 +3,11 @@
 Code  used for analysis of restring state EEG data and extracting PSD features.
 
 ## Installation
+Download the files with
+
+```
+git clone --depth 1 --branch pipeline git@github.com:danieltomasz/psd-paths.git
+```
 
 Run the command below to install the conda environment with all necessary packages for the analysis (you need to have conda installed, you can name it differently than `conda-paths-3.12`):
 
