@@ -132,8 +132,8 @@ class ProjectPaths:
         """Create a simple, logical structure for your project."""
         
         # Raw data - keep it safe and separate
-        self.data = self.root / 'data' / 'raw' / self.subject
-        
+        self.data_raw = self.root / 'data' / 'raw' 
+        self.data = self.data_raw / self.subject
         # Processing - all intermediate files go here
         self.processing = self.root /'data' / 'derrivatives' / self.subject
         self.preprocessed = self.processing / 'preprocessed'  # Cleaned/filtered data
@@ -186,3 +186,48 @@ class ProjectPaths:
                 if not any(dir_path.iterdir()):
                     dir_path.rmdir()
                     print(f"✗ Removed empty: {dir_path.relative_to(self.project_root)}")
+    
+    def show(self, selection: Optional[list[str]] = None):
+        """
+        Displays specified or all project paths in a formatted way.
+
+        Args:
+            selection (Optional[list[str]]): A list of path attribute names to display.
+                                             If None, all paths will be shown.
+                                             Example: ['data', 'figures', 'epochs']
+        """
+        print("─" * 60)
+        print(f"Paths for {self.subject}")
+        print(f"Project Root: {self.root}")
+        print("─" * 60)
+
+        # 1. Discover all attributes that are Path objects
+        all_path_attrs = {
+            key: val
+            for key, val in self.__dict__.items()
+            if isinstance(val, Path) and key != 'root'
+        }
+
+        # 2. Determine which paths to display based on user selection
+        paths_to_display = {}
+        if selection is None:
+            # If no selection, use all discovered paths
+            paths_to_display = all_path_attrs
+        else:
+            # If user made a selection, filter for those
+            for name in selection:
+                if name in all_path_attrs:
+                    paths_to_display[name] = all_path_attrs[name]
+                else:
+                    print(f"  ✗ Warning: '{name}' is not a valid path attribute.")
+        
+        if not paths_to_display:
+            return # Exit if nothing to show
+
+        # 3. Format and print the output
+        max_key_length = max(len(key) for key in paths_to_display.keys()) + 1
+        
+        for key, path in sorted(paths_to_display.items()):
+            print(f"  {key:<{max_key_length}}: {path}")
+            
+        print("─" * 60)

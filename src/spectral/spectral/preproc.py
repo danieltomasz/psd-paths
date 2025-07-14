@@ -10,28 +10,85 @@ from meegkit import dss
 from pyprep.find_noisy_channels import NoisyChannels
 
 from autoreject import Ransac  # noqa
-from typing import List
+from typing import  Optional, Union, List
+from pathlib import Path
 import numpy as np
 from mne import pick_types
 
 from .epochs import create_epochs
+from .utils import load_config, ProjectPaths
+
+
 
 # This part could be replaced by read MFF files (set files are just downsampled MFF files saved to the local laptop drive)
-def load_data(subject: str, project_path: str) -> mne.io.Raw:
-    """ Load the data from the dataset """
-    fname_path = f"{project_path}/data/raw/BIDS/sub-{
-        subject}/ses-01/eeg/sub-{subject}_ses-01_task-rest_eeg.set"
-    print(f"Loading data from {fname_path}")
-    raw = mne.io.read_raw_eeglab(fname_path, preload=True)
-    ch_name_type = dict(zip(raw.ch_names, raw.get_channel_types()))
-    ch_name_ecg = [name for name in raw.ch_names if name in "ECG"]
-    dict_ecg = {sub[0]: "ecg" for sub in (ele.split() for ele in ch_name_ecg)}
-    raw.set_channel_types(dict_ecg)
+def load_data(subject_id: Union[str, int], 
+              project_path: Union[str, Path],
+              session: str = "01",
+              task: str = "rest") -> mne.io.Raw:
+    """
+    Load EEG data with explicit path and preprocessing parameters.
+    
+    This version makes all key parameters visible at the function call,
+    which can be helpful for debugging and when you need to override
+    default settings for specific subjects.
+    
+    Args:
+        subject_id: Subject identifier (will be zero-padded to 3 digits)
+        project_path: Path to the BIDS data directory
+        session: Session identifier (default "01")
+        task: Task name (default "rest")
+        
+    Returns:
+        mne.io.Raw: Loaded and preprocessed raw data
+        
+    Example:
+        >>> raw = load_data(
+        ...     subject_id=1,
+        ...     project_path="/data/eeg_study/raw_bids",
+        ...     bad_channels=["VREF", "E125", "E126", "E127", "E128"]
+        ... )
+    """
+    # Convert inputs to proper types
+    project_path = Path(project_path)
+    
+    # Format subject ID consistently
+    if isinstance(subject_id, int):
+        subject_str = f"{subject_id:03d}"
+    else:
+        subject_str = str(subject_id).zfill(3)
+    
+    # Build the file path following BIDS structure
+    filename = f"sub-{subject_str}_ses-{session}_task-{task}_eeg.set"
+    data_file = project_path / f"sub-{subject_str}" / f"ses-{session}" / "eeg" / filename
+    
+    # Check if file exists with helpful error message
+    if not data_file.exists():
+        raise FileNotFoundError(
+            f"Data file not found: {data_file}\n"
+            f"Project path: {project_path}\n"
+            f"Looking for: {filename}\n"
+            f"Please check that the subject data has been copied to the BIDS directory."
+        )
+    
+    print(f"Loading data from: {data_file}")
+    
+    # Load the raw data
+    raw = mne.io.read_raw_eeglab(data_file, preload=True)
+    print(f"Loaded {len(raw.ch_names)} channels, {raw.times[-1]:.1f} seconds of data")
+    
+    # Handle ECG channels
+    ecg_channels = [ch for ch in raw.ch_names if "ECG" in ch.upper()]
+    if ecg_channels:
+        ecg_mapping = {ch: 'ecg' for ch in ecg_channels}
+        raw.set_channel_types(ecg_mapping)
+        print(f"Identified ECG channels: {ecg_channels}")
+    
+    # Set the channel type for 'VREF' to 'misc' before applying montage
+        raw.set_channel_types({'VREF': 'misc'})
+    # Apply montage
+    print("Applying GSN-HydroCel-256 montage...")
     montage = mne.channels.make_standard_montage("GSN-HydroCel-256")
-    raw.pick_channels([ch for ch in raw.ch_names if ch != "VREF"])
-    #raw.set_montage(montage, match_alias={"VREF": "Cz"})
-    raw.set_montage(montage)
-    #raw.info["bads"] = ["VREF"]
+    raw.set_montage(montage, on_missing='warn')
     return raw
 
 
