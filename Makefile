@@ -1,7 +1,7 @@
 .ONESHELL:
 
 PROJECT?=psd-paths
-VERSION?=3.12
+VERSION?=3.13
 VENV=${PROJECT}-${VERSION}
 VENV_DIR=$(shell pyenv root)/versions/${VENV}
 PYTHON=${VENV_DIR}/bin/python
