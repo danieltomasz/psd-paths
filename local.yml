@@ -1,12 +1,10 @@
 channels:
   - conda-forge
 dependencies:
-  - conda-forge::python>=3.12.5
+  - conda-forge::python>=3.12.5,<3.13
   - conda-forge::blas=*=accelerate
   - conda-forge::libblas=*=*accelerate
-  - conda-forge::numpy
   - conda-forge::pandas
-  - conda-forge::mne
   - conda-forge::mne-qt-browser
   - conda-forge::autoreject
   - conda-forge::pytorch
@@ -22,13 +20,16 @@ dependencies:
   - pyarrow
   - polars
   - pyprep
+  - great_tables
+  - conda-forge:mne<1.9
+  - conda-forge::numpy<2.3
+  - conda-forge:numba
+  - conda-forge::mne-bids
+  - conda-forge::scipy
+  - conda-forge::mne-bids-pipeline
+  - conda-forge::eeglabio
+  - conda-forge::papermill
+  - conda-forge::meegkit
   - pip:
-      - scipy>=1.14
-      - mne_bids
-      - specparam>=2.0.0rc2
-      - great_tables
-      - mne-bids-pipeline
-      - git+https://github.com/jackz314/eeglabio.git
-      - meegkit
-      - papermill
-      - -e ./src/spectral[test] --no-deps
+      - specparam>=2.0.0rc2 
+      - -e ./src/spectral[test]

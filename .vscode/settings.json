@@ -3,9 +3,9 @@
         "**/.git": true,
         "**/.svn": true,
         "**/.hg": true,
-        "**/CVS": true,
         "**/.DS_Store": true,
         "**/Thumbs.db": true,
+        "**/CVS": true,
         "**/.mypy_cache": true,
         ".mypy_cache": true,
         "**/.pytest_cache": true,
@@ -18,5 +18,6 @@
         ".jupyter": true
     },
     "explorerExclude.backup": {},
-    "makefile.configureOnOpen": false
+    "makefile.configureOnOpen": false,
+    "hide-files.files": []
 }

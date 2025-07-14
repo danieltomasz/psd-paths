@@ -73,7 +73,6 @@ I manually checked data:
 
 - medium quality 104, 106, 109 , 110 , 111, 118, 119, 120, 121, 129, 132, 140, 147, 150
 
-# Internal discussion
 
 
 # Bibliography
