@@ -19,7 +19,7 @@ dependencies:
   - polars
   - pyprep
   - great_tables
-  - conda-forge:mne<1.9
+  - conda-forge:mne
   - conda-forge::numpy<2.3
   - conda-forge:numba
   - conda-forge::mne-bids
