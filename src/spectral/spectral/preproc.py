@@ -22,7 +22,7 @@ from .utils import load_config, ProjectPaths
 
 # This part could be replaced by read MFF files (set files are just downsampled MFF files saved to the local laptop drive)
 def load_data(subject_id: Union[str, int], 
-              project_path: Union[str, Path],
+              data_path: Union[str, Path],
               session: str = "01",
               task: str = "rest") -> mne.io.Raw:
     """
@@ -34,7 +34,7 @@ def load_data(subject_id: Union[str, int],
     
     Args:
         subject_id: Subject identifier (will be zero-padded to 3 digits)
-        project_path: Path to the BIDS data directory
+        data_path: Path to the folder containing the BIDS-formatted data of the subject
         session: Session identifier (default "01")
         task: Task name (default "rest")
         
@@ -43,13 +43,12 @@ def load_data(subject_id: Union[str, int],
         
     Example:
         >>> raw = load_data(
-        ...     subject_id=1,
-        ...     project_path="/data/eeg_study/raw_bids",
-        ...     bad_channels=["VREF", "E125", "E126", "E127", "E128"]
+        ...     subject_id=001,
+        ...     data_path="/data/eeg_study/raw_bids/sub-001",
         ... )
     """
     # Convert inputs to proper types
-    project_path = Path(project_path)
+    data_path = Path(data_path)
     
     # Format subject ID consistently
     if isinstance(subject_id, int):
@@ -59,17 +58,16 @@ def load_data(subject_id: Union[str, int],
     
     # Build the file path following BIDS structure
     filename = f"sub-{subject_str}_ses-{session}_task-{task}_eeg.set"
-    data_file = project_path / f"sub-{subject_str}" / f"ses-{session}" / "eeg" / filename
+    data_file = data_path  / f"ses-{session}" / "eeg" / filename
     
     # Check if file exists with helpful error message
     if not data_file.exists():
         raise FileNotFoundError(
             f"Data file not found: {data_file}\n"
-            f"Project path: {project_path}\n"
+            f"Project path: {data_path}\n"
             f"Looking for: {filename}\n"
             f"Please check that the subject data has been copied to the BIDS directory."
         )
-    
     print(f"Loading data from: {data_file}")
     
     # Load the raw data
@@ -84,7 +82,10 @@ def load_data(subject_id: Union[str, int],
         print(f"Identified ECG channels: {ecg_channels}")
     
     # Set the channel type for 'VREF' to 'misc' before applying montage
-        raw.set_channel_types({'VREF': 'misc'})
+        # Remove 'VREF' channel if it exists
+    if 'VREF' in raw.ch_names:
+        raw.drop_channels(['VREF'])
+        print("Removed 'VREF' channel.")
     # Apply montage
     print("Applying GSN-HydroCel-256 montage...")
     montage = mne.channels.make_standard_montage("GSN-HydroCel-256")
@@ -259,3 +260,36 @@ def get_bad_annotations(
     duration = [ann["duration"] for ann in updated_annotations]
     description = [ann["description"] for ann in updated_annotations]
     return mne.Annotations(onset, duration, description, orig_time=None)
+
+def reject_log_to_annotations(reject_log, epochs):
+    """
+    Convert a reject_log from autoreject into MNE annotations.
+
+    This function identifies the time spans of bad epochs and creates
+    MNE annotations for them, which can be added back to the raw object.
+
+    Args:
+        reject_log: The RejectLog instance from autoreject.
+        epochs: The MNE epochs object from which the reject_log was generated.
+
+    Returns:
+        mne.Annotations: Annotations object marking the bad segments.
+    """
+    bad_epoch_indices = np.where(reject_log.bad_epochs)[0]
+
+    if len(bad_epoch_indices) == 0:
+        return mne.Annotations(onset=[], duration=[], description=[])
+
+    # Get the event timings from the epochs object
+    onsets = epochs.events[bad_epoch_indices, 0] / epochs.info["sfreq"]
+    duration = len(epochs.times) / epochs.info["sfreq"]
+
+    # Create annotations for each bad epoch
+    bad_annotations = mne.Annotations(
+        onset=onsets,
+        duration=[duration] * len(onsets),
+        description=["bad_autoreject"] * len(onsets),
+        orig_time=epochs.info.get('meas_date')
+    )
+
+    return bad_annotations

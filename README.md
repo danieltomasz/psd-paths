@@ -45,3 +45,21 @@ pip3 install -r requirement.txt
 
 # Analysis steps
 
+
+# Export as PDF 
+
+ensure latex packaeges are installed
+
+```bash
+tlmgr install titling
+```
+
+```python
+pyenv activate psd-paths-3.13 && jupyter nbconvert --execute --to pdf analysis/preprocessing/sub-101_1-raw-notch.ipynb
+```
+
+export python code 
+
+```bash
+files-to-prompt . -e py -e toml --cxml -o prompt-context.txt
+```

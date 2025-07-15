@@ -32,4 +32,5 @@ dependencies:
   - conda-forge::meegkit
   - pip:
       - specparam>=2.0.0rc2 
-      - -e ./src/spectral[test]
+      - -e ./src/spectral[test] --config-settings editable_mode=compat
+      -  files-to-prompt
