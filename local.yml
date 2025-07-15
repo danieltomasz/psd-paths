@@ -13,14 +13,6 @@ dependencies:
   - conda-forge::mne-icalabel
   - conda-forge::pyopengl
   - conda-forge::onnxruntime
-  - ipykernel
-  - python-dotenv
-  - seaborn
-  - pip
-  - pyarrow
-  - polars
-  - pyprep
-  - great_tables
   - conda-forge:mne
   - conda-forge::numpy<2.3
   - conda-forge:numba
@@ -30,7 +22,16 @@ dependencies:
   - conda-forge::eeglabio
   - conda-forge::papermill
   - conda-forge::meegkit
+  - ipykernel
+  - python-dotenv
+  - seaborn
+  - pip
+  - pyarrow
+  - polars
+  - pyprep
+  - great_tables
   - pip:
       - specparam>=2.0.0rc2 
       - -e ./src/spectral[test] --config-settings editable_mode=compat
-      -  files-to-prompt
+      - files-to-prompt
+      - mne>=1.10

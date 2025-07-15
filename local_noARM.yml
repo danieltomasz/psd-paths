@@ -31,3 +31,5 @@ dependencies:
   - pip:
       - specparam>=2.0.0rc2 
       - -e ./src/spectral[test]
+      - mne>=1.10
+
