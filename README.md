@@ -39,17 +39,16 @@ There is a notebook called `EnsureFolderStructure.ipynb` which will copy unstruc
 
 ### 1. Preprocessing
 
-This step is done in the notebook `sub-101-raw-notch.ipynb`. It will load the raw data, apply notch filter, remove bad channels, and save the preprocessed data. The preprocessed data will be saved as epochs in the  `data/epochs` folder.
+This step is done in the notebook `sub-101-step-1-filter-raw-notch.ipynb`. It will load the raw data, apply notch filter, remove bad channels, and save the preprocessed data. The preprocessed data will be saved as epochs in the  `data/epochs` folder.
 
 ### 2. ICA and Extracting PSD features
 
-This step is done in the notebook `sub-101-ica.ipynb`. It will load the preprocessed data, run ICA, and extract the spectral features. The features will be saved in the `outputs/specparam` folder.
+This step is done in the notebook `sub-101-step_2-ica-specparam.ipynb`. It will load the preprocessed data, run ICA, and extract the spectral features. The features will be saved in the `outputs/specparam` folder.
 
-For every subject, the PSD features will be saved in a separate folder named after the subject (e.g., `sub-101_1`).
 
 ## Running analysis for many sunbjects
 
-You duplicate the notebooks for each subject to run the same analysis, you just need to change the subject ID in the notebook name and in the code. The strucure of the folders will be the same for each subject.
+You  can duplicate notebooks for each subject to run the same analysis, you just need to change the subject ID in the notebook name and in the code. The structure of the folders will be the same for each subject.
 
 ## Export notebooks as PDF (requires LaTeX installed) 
 
