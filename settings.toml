@@ -1,5 +1,7 @@
 [paths]
 project_root = "/Users/daniel/PhD/Projects/psd-paths"
+path_raw_mff = "/Users/daniel/PhD/Projects/psd-paths/data/source/DATI_PATHS/Raw_data"
+path_raw_bids = "/Users/daniel/PhD/Projects/psd-path/data/raw/"
 
 [experiment]
 # Add any experiment-specific settings here
