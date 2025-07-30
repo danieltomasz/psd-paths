@@ -1,6 +1,6 @@
 # EEG PSD-PATHS pipeline
 
-Code  used for analysis of restring state EEG data and extracting PSD features.
+Code  used for analysis of resting state EEG data and extracting PSD features.
 
 ## Installation
 Download the files with

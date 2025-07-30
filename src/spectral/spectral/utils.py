@@ -138,14 +138,14 @@ class ProjectPaths:
         self.preprocessed = self.processing / 'preprocessed'  # Cleaned/filtered data
         self.epochs = self.processing / 'epochs'              # Epoched data
         self.analysis = self.processing / 'analysis'          # PSD, connectivity, etc.
-        
+        self.ica = self.analysis / 'ica'                      # ICA results
         # Outputs - things you want to keep and share
-        self.outputs = self.root / 'outputs' / self.subject
-        self.figures = self.outputs / 'figures'
-        self.reports = self.outputs / 'reports'
-        
+        self.outputs = self.root / 'outputs' 
+        self.figures = self.outputs / 'figures' / self.subject
+        self.reports = self.outputs / 'reports' / self.subject
+        self.specparam = self.outputs / 'specparam' / self.subject # Spectral parameters
         # One place for all the miscellaneous stuff
-        self.logs = self.processing / 'logs'
+        self.logs = self.root /'data'  / 'logs'
     
     def make_filename(self, description: str, extension: str = '.fif') -> str:
         """
@@ -163,6 +163,8 @@ class ProjectPaths:
             self.analysis,
             self.figures,
             self.reports,
+            self.specparam,
+            self.ica,
             self.logs
         ]
         
