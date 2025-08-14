@@ -3,7 +3,7 @@ channels:
 dependencies:
   - conda-forge::python>=3.13.5
   - conda-forge::numpy<2.3
-  - conda-forge::libblas=*=*newaccelerate
+  - conda-forge::libblas=*=*accelerate
   - conda-forge::pandas
   - conda-forge::mne-qt-browser
   - conda-forge::autoreject

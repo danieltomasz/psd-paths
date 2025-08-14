@@ -133,7 +133,6 @@ class ProjectPaths:
         
         # Raw data - keep it safe and separate
         self.data = self.root / 'data' / 'raw'   / self.subject
-        self.data_bids = self.data / 'raw'   # BIDS formatted data
         # Processing - all intermediate files go here
         self.processing = self.root /'data' / 'derrivatives' / self.subject
         self.preprocessed = self.processing / 'preprocessed'  # Cleaned/filtered data
