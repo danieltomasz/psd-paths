@@ -1,0 +1,2 @@
+/Users/daniel/.local/pipx/venvs/pip/bin/python3.13 convert_notebooks.py
+files-to-prompt .  --ignore ./_archive  -e .py --cxml -o pyton_context.txt

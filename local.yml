@@ -1,8 +1,8 @@
 channels:
   - conda-forge
 dependencies:
-  - conda-forge::python>=3.13.5
-  - conda-forge::numpy<2.3
+  - conda-forge::python>=3.13.9
+  - conda-forge::numpy
   - conda-forge::libblas=*=*accelerate
   - conda-forge::pandas
   - conda-forge::mne-qt-browser
@@ -29,8 +29,13 @@ dependencies:
   - polars
   - pyprep
   - great_tables
+  - pytest
+  - plotnine
+  - polars
   - pip:
       - specparam>=2.0.0rc2 
       - -e ./src/spectral[test] --config-settings editable_mode=compat
       - files-to-prompt
+      - marimo
+      - git+https://github.com/mne-tools/mne-denoise.git
 

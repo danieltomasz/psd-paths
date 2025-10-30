@@ -25,3 +25,5 @@ paths-analysis/
 prompt-context.txt
 outputs/
 _resources
+_archive/
+**/__marimo__/

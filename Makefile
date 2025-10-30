@@ -12,7 +12,7 @@ CONDA_ACTIVATE = source $$(conda info --base)/etc/profile.d/conda.sh ; conda act
 
 install:
 	$(eval PYTHON := ~/.pyenv/versions/${VENV}/bin/python)
-	$(eval PYTHON_DIST := miniforge3-25.1.1-2)
+	$(eval PYTHON_DIST := miniforge3-25.3.1-0)
 	$(eval CONDA_BIN := ~/.pyenv/versions/${PYTHON_DIST}/bin/conda)
 	$(eval VENV := ${VENV})
 	@echo "Installing $(VENV) with $(PYTHON_DIST)"
@@ -36,7 +36,7 @@ python-info:
 
 
 clean-conda:
-	$(eval PYTHON_DIST :=  miniforge3-25.1.1-0)
+	$(eval PYTHON_DIST :=  miniforge3-25.3.1-0)
 	$(eval CONDA_BIN := ~/.pyenv/versions/${PYTHON_DIST}/bin/conda)
 	${CONDA_BIN} clean --all
 
