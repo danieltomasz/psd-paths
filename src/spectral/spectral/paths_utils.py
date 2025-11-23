@@ -265,63 +265,6 @@ def specparam2pandas(fg):
     )
 
 
-def examine_spectra(fg, subject):
-    """Compare the power spectra between low and high exponent channels"""
-    fig, ax = plt.subplots(1, 2, figsize=(12, 6))
-
-    def argmedian(arr):
-        return np.argsort(arr)[len(arr) // 2]
-
-    exps = fg.get_params("aperiodic_params", "exponent")
-    r_squared = fg.get_params("r_squared")
-    spectra_exp = [
-        fg.get_model(np.argmin(exps)).power_spectrum,
-        fg.get_model(argmedian(exps)).power_spectrum,
-        fg.get_model(np.argmax(exps)).power_spectrum,
-    ]
-
-    labels_spectra_exp = [
-        f"Low Exponent {format(np.min(exps), '.2f')}",
-        f"Median Exponent {format(np.median(exps), '.2f')}",
-        f"High Exponent {format(np.max(exps), '.2f')}",
-    ]
-
-    plot_spectra(
-        fg.freqs,
-        spectra_exp,
-        ax=ax[0],
-        labels=labels_spectra_exp,
-    )
-
-    spectra_r_squared = [
-        fg.get_model(np.argmin(r_squared)).power_spectrum,
-        fg.get_model(argmedian(r_squared)).power_spectrum,
-        fg.get_model(np.argmax(r_squared)).power_spectrum,
-    ]
-
-    labels_spectra_r_squared = [
-        f"Low R_squared  {format(np.min(r_squared), '.2f')}",
-        f"Median R_squared {format(np.median(r_squared), '.2f')}",
-        f"High R_squared {format(np.max(r_squared), '.2f')}",
-    ]
-
-    my_colors = ["blue", "green", "red"]
-    plot_spectra(
-        fg.freqs,
-        spectra_r_squared,
-        ax=ax[1],
-        labels=labels_spectra_r_squared,
-        colors=my_colors,
-    )
-    ylim1 = ax[0].get_ylim()
-    ylim2 = ax[1].get_ylim()
-    # Set the same limits on the y-axis for both plots
-    ax[0].set_ylim(min(ylim1[0], ylim2[0]), max(ylim1[1], ylim2[1]))
-    ax[1].set_ylim(min(ylim1[0], ylim2[0]), max(ylim1[1], ylim2[1]))
-    fig.suptitle(
-        f"sub-{subject} - Power spectra comparison between low, median and high exponent and R_squared values"
-    )
-
 
 def plot_spectra_models_generalized(fg, data, data_type="exps"):
     """

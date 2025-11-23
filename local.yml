@@ -32,10 +32,15 @@ dependencies:
   - pytest
   - plotnine
   - polars
+  - python-lsp-server
+  - ruff
+  - python-lsp-ruff
   - pip:
-      - specparam>=2.0.0rc2 
+      - specparam>=2.0.0rc4 
       - -e ./src/spectral[test] --config-settings editable_mode=compat
       - files-to-prompt
-      - marimo
+      - marimo[mcp]
       - git+https://github.com/mne-tools/mne-denoise.git
+      - asrpy
+
 

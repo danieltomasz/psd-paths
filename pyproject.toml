@@ -31,9 +31,3 @@ exclude = [
 # Same as Black.
 line-length = 88
 indent-width = 4
-
-[tool.ruff.lint]
-ignore = ["E302","E265"]
-
-[tool.ruff.format]
-ignore = ["E302","E265"]

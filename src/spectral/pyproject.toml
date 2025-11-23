@@ -36,22 +36,6 @@ line-length = 88
 target-version = ['py310', 'py311']
 include = '\.pyi?$'
 
-# iSort
-[tool.isort]
-profile = "black"
-line_length = 88
-multi_line_output = 3
-include_trailing_comma = true
-
-
-[tool.flake8]
-ignore = ['E231', 'E241']
-per-file-ignores = [
-    '__init__.py:F401',
-]
-max-line-length = 88
-count = true
-
 
 [tool.pytest-watcher]
 now = false
@@ -94,9 +78,3 @@ exclude = [
 # Same as Black.
 line-length = 88
 indent-width = 4
-
-[tool.ruff.lint]
-ignore = ["E302","E265"]
-
-[tool.ruff.format]
-ignore = ["E302","E265"]

@@ -1,6 +1,6 @@
 .ONESHELL:
 
-PROJECT?=psd-paths
+PROJECT?=spectral
 VERSION?=3.13
 VENV=${PROJECT}-${VERSION}
 VENV_DIR=$(shell pyenv root)/versions/${VENV}
