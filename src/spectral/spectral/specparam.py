@@ -33,46 +33,43 @@ def specparam2pandas(fg):
     Peaks are joined with their corresponding aperiodic parameters via the 'ID' column.
     If a spectrum has no peaks, it will still appear with NaN values for peak columns.
     """
-    
+
     # Check if model has been fit
     if not fg.results.has_model:
         raise ValueError("No model fit results available. Please fit the model first.")
-    
+
     # Extract aperiodic parameters - one row per spectrum
-    ap_params = fg.get_params('aperiodic')
+    ap_params = fg.get_params("aperiodic")
     ap_labels = list(fg.modes.aperiodic.params.labels)
-    
-    specparam_aperiodic = pd.DataFrame(
-        ap_params,
-        columns=ap_labels
-    )
-    
+
+    specparam_aperiodic = pd.DataFrame(ap_params, columns=ap_labels)
+
     # Add metrics
-    specparam_aperiodic['error_mae'] = fg.get_metrics('error', 'mae')
-    specparam_aperiodic['gof_rsquared'] = fg.get_metrics('gof', 'rsquared')
-    
+    specparam_aperiodic["error_mae"] = fg.get_metrics("error", "mae")
+    specparam_aperiodic["gof_rsquared"] = fg.get_metrics("gof", "rsquared")
+
     # Add ID column
-    specparam_aperiodic = specparam_aperiodic.reset_index(names=['ID'])
-    
+    specparam_aperiodic = specparam_aperiodic.reset_index(names=["ID"])
+
     # Extract peak parameters
-    peaks = fg.get_params('peak')
-    
+    peaks = fg.get_params("peak")
+
     if peaks.size > 0:
         # peaks array has shape (n_peaks, 4) where columns are [CF, PW, BW, ID]
         # The last column is the model index
         peak_df = pd.DataFrame(peaks)
-        peak_df.columns = ['CF', 'PW', 'BW', 'ID']
-        peak_df['ID'] = peak_df['ID'].astype(int)
-        
+        peak_df.columns = ["CF", "PW", "BW", "ID"]
+        peak_df["ID"] = peak_df["ID"].astype(int)
+
         # Left join peaks with aperiodic parameters
-        result = specparam_aperiodic.merge(peak_df, on='ID', how='left')
+        result = specparam_aperiodic.merge(peak_df, on="ID", how="left")
     else:
-                # No peaks found - create empty peak dataframe with proper columns
-        peak_df = pd.DataFrame(columns=['CF', 'PW', 'BW', 'ID'])
-        
+        # No peaks found - create empty peak dataframe with proper columns
+        peak_df = pd.DataFrame(columns=["CF", "PW", "BW", "ID"])
+
         # Left join to maintain all spectra with NaN for peak values
-        result = specparam_aperiodic.merge(peak_df, on='ID', how='left')
-    
+        result = specparam_aperiodic.merge(peak_df, on="ID", how="left")
+
     return result
 
 

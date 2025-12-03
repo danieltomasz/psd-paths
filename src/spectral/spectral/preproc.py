@@ -1,4 +1,5 @@
-""" Function for preprocessing EEG data """
+"""Function for preprocessing EEG data"""
+
 import mne
 import matplotlib.pyplot as plt
 
@@ -7,10 +8,9 @@ from eeglabio.utils import export_mne_raw
 
 from meegkit.detrend import detrend
 from meegkit import dss
-from pyprep.find_noisy_channels import NoisyChannels
 
 from autoreject import Ransac  # noqa
-from typing import  Optional, Union, List
+from typing import Optional, Union, List
 from pathlib import Path
 import numpy as np
 from mne import pick_types
@@ -19,77 +19,134 @@ from .epochs import create_epochs
 from .utils import load_config, ProjectPaths
 
 
-
 # This part could be replaced by read MFF files (set files are just downsampled MFF files saved to the local laptop drive)
-def load_data(subject_id: Union[str, int], 
-              data_path: Union[str, Path],
-              session: str = "01",
-              task: str = "rest") -> mne.io.Raw:
+def load_data(
+    subject_id: Union[str, int],
+    data_path: Union[str, Path],
+    session: str = "01",
+    task: Optional[str] = None,
+) -> mne.io.Raw:
     """
-    Load EEG data with explicit path and preprocessing parameters.
-    
-    This version makes all key parameters visible at the function call,
-    which can be helpful for debugging and when you need to override
-    default settings for specific subjects.
-    
+    Load EEG data from BIDS-formatted directory with automatic format detection.
+
+    Automatically discovers and loads EEG data in either BrainVision (.vhdr) or
+    EEGLAB (.set) format. Prefers BrainVision format when both are available.
+
     Args:
         subject_id: Subject identifier (will be zero-padded to 3 digits)
         data_path: Path to the folder containing the BIDS-formatted data of the subject
         session: Session identifier (default "01")
-        task: Task name (default "rest")
-        
+        task: Task name (default None for auto-discovery). If None, loads the first
+              available task. If specified, matches case-insensitively.
+
     Returns:
         mne.io.Raw: Loaded and preprocessed raw data
-        
+
     Example:
+        >>> # Auto-discover task and format
         >>> raw = load_data(
-        ...     subject_id=001,
-        ...     data_path="/data/eeg_study/raw_bids/sub-001",
+        ...     subject_id=101,
+        ...     data_path="/data/bids/sub-101",
+        ... )
+        >>> # Specify task explicitly
+        >>> raw = load_data(
+        ...     subject_id=101,
+        ...     data_path="/data/bids/sub-101",
+        ...     task="RESTING"
         ... )
     """
     # Convert inputs to proper types
     data_path = Path(data_path)
-    
+
     # Format subject ID consistently
     if isinstance(subject_id, int):
         subject_str = f"{subject_id:03d}"
     else:
         subject_str = str(subject_id).zfill(3)
-    
-    # Build the file path following BIDS structure
-    filename = f"sub-{subject_str}_ses-{session}_task-{task}_eeg.set"
-    data_file = data_path  / f"ses-{session}" / "eeg" / filename
-    
-    # Check if file exists with helpful error message
-    if not data_file.exists():
+
+    # Build path to EEG directory - try with and without session subfolder
+    eeg_dir_with_session = data_path / f"ses-{session}" / "eeg"
+    eeg_dir_without_session = data_path / "eeg"
+
+    if eeg_dir_with_session.exists():
+        eeg_dir = eeg_dir_with_session
+        subject_prefix = f"sub-{subject_str}_ses-{session}_task-"
+    elif eeg_dir_without_session.exists():
+        eeg_dir = eeg_dir_without_session
+        subject_prefix = f"sub-{subject_str}_ses-{session}_task-"
+    else:
         raise FileNotFoundError(
-            f"Data file not found: {data_file}\n"
-            f"Project path: {data_path}\n"
-            f"Looking for: {filename}\n"
+            f"EEG directory not found. Tried:\n"
+            f"  - {eeg_dir_with_session}\n"
+            f"  - {eeg_dir_without_session}\n"
             f"Please check that the subject data has been copied to the BIDS directory."
         )
-    print(f"Loading data from: {data_file}")
-    
-    # Load the raw data
-    raw = mne.io.read_raw_eeglab(data_file, preload=True)
+
+    # Search pattern for BIDS-formatted EEG files
+
+    # Find all matching EEG files (vhdr and set)
+    vhdr_files = list(eeg_dir.glob(f"{subject_prefix}*_eeg.vhdr"))
+    set_files = list(eeg_dir.glob(f"{subject_prefix}*_eeg.set"))
+
+    # Filter by task if specified
+    if task is not None:
+        task_lower = task.lower()
+        vhdr_files = [f for f in vhdr_files if f"task-{task_lower}" in f.stem.lower()]
+        set_files = [f for f in set_files if f"task-{task_lower}" in f.stem.lower()]
+
+    # Prefer vhdr over set
+    if vhdr_files:
+        data_file = vhdr_files[0]
+        file_format = "BrainVision"
+        if len(vhdr_files) > 1:
+            print(f"Warning: Multiple .vhdr files found, using: {data_file.name}")
+    elif set_files:
+        data_file = set_files[0]
+        file_format = "EEGLAB"
+        if len(set_files) > 1:
+            print(f"Warning: Multiple .set files found, using: {data_file.name}")
+    else:
+        # Provide helpful error message
+        available_files = list(eeg_dir.glob(f"{subject_prefix}*_eeg.*"))
+        available_list = (
+            "\n  ".join([f.name for f in available_files])
+            if available_files
+            else "None"
+        )
+        raise FileNotFoundError(
+            f"No compatible EEG file found in: {eeg_dir}\n"
+            f"Looking for: {subject_prefix}*_eeg.(vhdr|set)\n"
+            f"Task filter: {task if task else 'Any'}\n"
+            f"Available files:\n  {available_list}"
+        )
+
+    print(f"Loading {file_format} data from: {data_file.name}")
+
+    # Load the raw data with appropriate reader
+    if file_format == "BrainVision":
+        raw = mne.io.read_raw_brainvision(data_file, preload=True)
+    else:  # EEGLAB
+        raw = mne.io.read_raw_eeglab(data_file, preload=True)
+
     print(f"Loaded {len(raw.ch_names)} channels, {raw.times[-1]:.1f} seconds of data")
-    
+
     # Handle ECG channels
     ecg_channels = [ch for ch in raw.ch_names if "ECG" in ch.upper()]
     if ecg_channels:
-        ecg_mapping = {ch: 'ecg' for ch in ecg_channels}
+        ecg_mapping = {ch: "ecg" for ch in ecg_channels}
         raw.set_channel_types(ecg_mapping)
         print(f"Identified ECG channels: {ecg_channels}")
-    
-    # Set the channel type for 'VREF' to 'misc' before applying montage
-        # Remove 'VREF' channel if it exists
-    if 'VREF' in raw.ch_names:
-        raw.drop_channels(['VREF'])
+
+    # Remove 'VREF' channel if it exists
+    if "VREF" in raw.ch_names:
+        raw.drop_channels(["VREF"])
         print("Removed 'VREF' channel.")
+
     # Apply montage
     print("Applying GSN-HydroCel-256 montage...")
     montage = mne.channels.make_standard_montage("GSN-HydroCel-256")
-    raw.set_montage(montage, on_missing='warn')
+    raw.set_montage(montage, on_missing="warn")
+
     return raw
 
 
@@ -97,9 +154,7 @@ def detrending(raw, order=1):
     """Detrend the data"""
     data = raw.get_data().T  # Convert mne data to numpy darray
     data, _, _ = detrend(data, order=order)
-    detrended_raw = mne.io.RawArray(
-        data.T, raw.info
-    )
+    detrended_raw = mne.io.RawArray(data.T, raw.info)
     detrended_raw.set_annotations(raw.annotations)
     return detrended_raw
 
@@ -108,8 +163,7 @@ def apply_projection(raw):
     """Apply the projection"""
     raw_clean = raw.copy()
     raw_clean.interpolate_bads()
-    raw_clean.set_eeg_reference(
-        "average", projection=True)  # compute the reference
+    raw_clean.set_eeg_reference("average", projection=True)  # compute the reference
     raw_ref = raw.copy().add_proj(raw_clean.info["projs"][0])
     return raw_ref.apply_proj()  # apply the reference
 
@@ -121,6 +175,7 @@ def get_bad_lof(raw):
     raw_marked_bad.info["bads"].extend(bad_channels)  # add a list of channels
     bad_channels2 = mne.preprocessing.find_bad_channels_lof(raw_marked_bad)
     return bad_channels + bad_channels2
+
 
 def zapline_clean(raw, fline, ntimes=1, method="line", iter_param=None):
     """Apply the zapline cleaning"""
@@ -141,30 +196,6 @@ def zapline_clean(raw, fline, ntimes=1, method="line", iter_param=None):
     return cleaned_raw
 
 
-def apply_pyprep(raw: mne.io.Raw, output: str = "all", as_dict=True) -> List[str]:
-    """Apply the pyprep cleaning"""
-    temp = raw.copy().resample(125)
-    nd = NoisyChannels(temp, random_state=1337)
-    #nd.find_bad_by_correlation(
-    #    correlation_secs=1.0, correlation_threshold=0.4, frac_bad=0.01
-    # )
-    #nd.find_bad_by_deviation(deviation_threshold=5.0)
-    if output == "all":
-        nd.find_all_bads(ransac=True, channel_wise=True, max_chunk_size=None)
-        print("bad all", nd.get_bads(verbose=True))
-        return nd.get_bads(verbose=True, as_dict=as_dict)
-    else:
-        nd.find_bad_by_correlation(
-         correlation_secs=1.0, correlation_threshold=0.4, frac_bad=0.01
-        )
-        nd.find_bad_by_deviation(deviation_threshold=5.0)
-        nd.find_bad_by_ransac(n_samples=50, sample_prop=0.25, corr_thresh=0.75,
-                              frac_bad=0.4, corr_window_secs=5.0,
-                              channel_wise=True, max_chunk_size=None)
-        return nd.get_bads(verbose=False, as_dict=as_dict)
-
-
-
 def get_bad_channels(raw, save_figs=False):
     """Reject bad channels by RANSAC on the epochs"""
     clean_raw_downsampled = raw.copy().resample(125, npad="auto")
@@ -173,12 +204,13 @@ def get_bad_channels(raw, save_figs=False):
     ransac = Ransac(verbose=False, n_jobs=-1)
     _ = ransac.fit_transform(epochs)
     print("\n".join(ransac.bad_chs_))
-    #sensor_plot = raw.plot_sensors(show_names=True)
-    #if save_figs:
+    # sensor_plot = raw.plot_sensors(show_names=True)
+    # if save_figs:
     #    sensor_plot.savefig(
     #        f"{figure_path}/sub-{subject}_bad_sensors.png", dpi=300, bbox_inches="tight"
     #    )
     return [x for x in ransac.bad_chs_]
+
 
 def compute_ptp_matrix(data, epoch_duration, sfreq):
     """
@@ -247,19 +279,18 @@ def get_bad_annotations(
 
         new_onset = max(0, onset - extend_samples / sfreq)
         new_duration = duration + 2 * extend_samples / sfreq
-        updated_annotations.append(
-            {
-                "onset": new_onset,
-                "duration": new_duration,
-                "description": description,
-                "orig_time": None,
-            }
-        )
+        updated_annotations.append({
+            "onset": new_onset,
+            "duration": new_duration,
+            "description": description,
+            "orig_time": None,
+        })
 
     onset = [ann["onset"] for ann in updated_annotations]
     duration = [ann["duration"] for ann in updated_annotations]
     description = [ann["description"] for ann in updated_annotations]
     return mne.Annotations(onset, duration, description, orig_time=None)
+
 
 def reject_log_to_annotations(reject_log, epochs):
     """
@@ -289,7 +320,7 @@ def reject_log_to_annotations(reject_log, epochs):
         onset=onsets,
         duration=[duration] * len(onsets),
         description=["bad_autoreject"] * len(onsets),
-        orig_time=epochs.info.get('meas_date')
+        orig_time=epochs.info.get("meas_date"),
     )
 
     return bad_annotations

@@ -8,7 +8,6 @@ from meegkit import dss
 import copy
 
 
-
 def identify_and_handle_reference_channel(raw: mne.io.Raw, 
                                         reference_names: List[str] = ['VREF', 'Cz', 'REF']) -> mne.io.Raw:
     """

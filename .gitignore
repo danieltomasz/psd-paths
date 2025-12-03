@@ -27,3 +27,4 @@ outputs/
 _resources
 _archive/
 **/__marimo__/
+.venv/

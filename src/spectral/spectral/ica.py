@@ -106,7 +106,8 @@ def plot_removed_components(
                 # fig = ica.plot_properties(eeg_data, picks=ind)
                 fig.savefig(
                     f"{figure_path}/sub-{subject}_ICA{str(ind).zfill(3)}_{
-                        label.replace(" ", "-")}.png",
+                        label.replace(' ', '-')
+                    }.png",
                     dpi=300,
                     bbox_inches="tight",
                 )

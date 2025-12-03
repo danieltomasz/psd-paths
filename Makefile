@@ -54,3 +54,18 @@ update:
 download:
 	$(PYTHON) -m pip download -r requirements.txt -d downloads
 
+kernel:
+	@echo "Installing Jupyter kernel"
+	# Use the uv‑managed Python interpreter to register the kernel
+	uv run python -m ipykernel install \
+	    --user \
+	    --name=${VENV} \
+	    --display-name=${VENV}
+
+test:
+	@echo "Running tests with uv"
+	uv run pytest tests/
+
+sync:
+	@echo "Syncing source code to uv workspace"
+	uv sync --all-extras
