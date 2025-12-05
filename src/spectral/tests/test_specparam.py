@@ -8,7 +8,6 @@ app = marimo.App(width="medium")
 def _():
     import marimo as mo
 
-
     def test_specparam2pandas_dimensions():
         """Test that specparam2pandas output has correct dimensions."""
         from spectral.specparam import specparam2pandas
@@ -30,9 +29,7 @@ def _():
         df = specparam2pandas(fg)
 
         # Test dimensions
-        assert len(df) >= n_models, (
-            f"Expected at least {n_models} rows, got {len(df)}"
-        )
+        assert len(df) >= n_models, f"Expected at least {n_models} rows, got {len(df)}"
 
         # Test columns
         expected_cols = [
@@ -50,6 +47,7 @@ def _():
 
         print(f"✓ Test passed: {len(df)} rows, {len(df.columns)} columns")
         return df  # Return for inspection in marimo
+
     return (test_specparam2pandas_dimensions,)
 
 

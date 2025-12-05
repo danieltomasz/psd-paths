@@ -1,11 +1,14 @@
-""" Functions to plot data and PSD """
+"""Functions to plot data and PSD"""
+
 from pathlib import Path
 import matplotlib.pyplot as plt
 import mne
 import numpy as np
 
 
-def plot_step(temp, subject,  figures_path, stage="raw", duration=50.0, n_channels=50, fmax=100.0):
+def plot_step(
+    temp, subject, figures_path, stage="raw", duration=50.0, n_channels=50, fmax=100.0
+):
     """Plot raw data and PSD of the data"""
     raw_plot = mne.viz.plot_raw(
         temp.copy(),
@@ -25,8 +28,9 @@ def plot_step(temp, subject,  figures_path, stage="raw", duration=50.0, n_channe
     fig, ax = plt.subplots(figsize=(10, 5))
     raw_psd = temp.compute_psd(
         fmax=fmax, method="welch", picks="eeg", exclude="bads"
-    ).plot(average=False, picks="eeg", exclude="bads", show=False,
-           axes=ax, amplitude=False)
+    ).plot(
+        average=False, picks="eeg", exclude="bads", show=False, axes=ax, amplitude=False
+    )
     ax.set_title(f"sub-{subject} {stage} PSD")
     raw_psd.savefig(
         f"{figures_path}/sub-{subject}_{stage}-psd.png", dpi=300, bbox_inches="tight"
@@ -34,7 +38,15 @@ def plot_step(temp, subject,  figures_path, stage="raw", duration=50.0, n_channe
     fig.show()
 
 
-def plot_epochs(epochs, figures_path, subject, stage="epochs", n_epochs=10, n_channels=10, fmax=100.0):
+def plot_epochs(
+    epochs,
+    figures_path,
+    subject,
+    stage="epochs",
+    n_epochs=10,
+    n_channels=10,
+    fmax=100.0,
+):
     """Plot the  epoch data"""
     epochs_plot = epochs.copy().average().detrend().plot_joint()
     Path(figures_path).mkdir(parents=True, exist_ok=True)
@@ -72,7 +84,8 @@ def plot_bad_channels(raw, subject, figures_path):
     bad_channel_plot.savefig(
         f"{figures_path}/sub-{subject}_bad_channel_plot.png",
         dpi=300,
-        bbox_inches="tight",)
+        bbox_inches="tight",
+    )
     plt.close()
     sensor_plot = raw.plot_sensors(show_names=True)
     sensor_plot.savefig(
@@ -88,10 +101,7 @@ def visualise_bad_epochs(reject_log):
     plt.colorbar(orientation="horizontal", pad=0.1)
     plt.show()
 
-    print(
-        f"Currently removed number of epochs {
-            np.sum(reject_log.bad_epochs)}"
-    )
+    print(f"Currently removed number of epochs {np.sum(reject_log.bad_epochs)}")
     # print(bads)
     # print(bads.shape)
     good_epochs_percentage = (1 - bads.mean(axis=1)) * 100

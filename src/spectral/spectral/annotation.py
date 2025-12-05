@@ -218,7 +218,6 @@ def annotate_with_potato_robust(
     window_duration=1.5,
     resample_freq=250,
 ):
-
     # 1. CLEAN UP BEFORE STARTING
     raw_clean = raw.copy()
     raw_clean.resample(resample_freq, verbose=False)

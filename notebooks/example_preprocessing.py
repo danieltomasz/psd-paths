@@ -7,6 +7,7 @@ app = marimo.App(width="medium", sql_output="polars")
 @app.cell
 def _():
     import marimo as mo
+
     return
 
 
@@ -91,7 +92,6 @@ def _(bad_channels, raw):
         "phase": "zero",
         "picks": ["ecg", "eeg"],
     }
-
 
     total_duration = raw.times[-1]
 

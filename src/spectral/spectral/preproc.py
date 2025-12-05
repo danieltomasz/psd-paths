@@ -279,12 +279,14 @@ def get_bad_annotations(
 
         new_onset = max(0, onset - extend_samples / sfreq)
         new_duration = duration + 2 * extend_samples / sfreq
-        updated_annotations.append({
-            "onset": new_onset,
-            "duration": new_duration,
-            "description": description,
-            "orig_time": None,
-        })
+        updated_annotations.append(
+            {
+                "onset": new_onset,
+                "duration": new_duration,
+                "description": description,
+                "orig_time": None,
+            }
+        )
 
     onset = [ann["onset"] for ann in updated_annotations]
     duration = [ann["duration"] for ann in updated_annotations]
