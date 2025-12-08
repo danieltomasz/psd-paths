@@ -4,8 +4,57 @@ import os
 from datetime import datetime
 from pathlib import Path
 import toml  # Use toml instead of ConfigParser
-from typing import Dict, Optional, Union
+from typing import Dict, Optional, Union, List
 import mne
+
+# ...existing code...
+def get_subjects(
+    bids_root: Union[str, Path],
+    limit: Optional[int] = None,
+    offset: int = 0,
+    sort: bool = True,
+) -> List[str]:
+    """
+    Get a list of subject IDs from the BIDS directory.
+
+    Parameters
+    ----------
+    bids_root : str or Path
+        Path to the BIDS root directory.
+    limit : int, optional
+        Maximum number of subjects to return.
+    offset : int, default 0
+        Number of subjects to skip (for pagination).
+    sort : bool, default True
+        Whether to sort the subject IDs numerically/alphabetically.
+
+    Returns
+    -------
+    list of str
+        List of subject IDs (e.g., ['101', '102']).
+    """
+    bids_path = Path(bids_root)
+    
+    if not bids_path.exists():
+        raise FileNotFoundError(f"BIDS root directory not found: {bids_root}")
+
+    # Find all folders starting with 'sub-'
+    subjects = []
+    for item in bids_path.iterdir():
+        if item.is_dir() and item.name.startswith("sub-"):
+            # Extract ID (remove 'sub-' prefix)
+            sub_id = item.name.replace("sub-", "")
+            subjects.append(sub_id)
+
+    # Sort if requested
+    if sort:
+        subjects.sort()
+
+    # Apply offset and limit
+    start = offset
+    end = offset + limit if limit is not None else None
+    
+    return subjects[start:end]
 
 
 def print_timestamp(prefix: str = ""):
