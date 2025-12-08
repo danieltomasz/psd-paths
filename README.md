@@ -1,10 +1,10 @@
 # EEG PSD-PATHS pipeline
 
-This is an EEG analysis pipeline for processing resting-state EEG data and extracting Power Spectral Density (PSD) features in the PATHS project. The project uses high-density EEG recordings (256-channel GSN-HydroCel montage) and processes them through filtering, artifact removal, ICA, and spectral parameterization using the `specparam' library.
+This is an EEG analysis pipeline for processing resting-state EEG data and extracting Power Spectral Density (PSD) features in the PATHS project. The project uses high-density EEG recordings (256-channel GSN-HydroCel montage) and processes them through filtering, artifact removal, ICA component extraction, and spectral parameterization using the `specparam' library.
 
 ## Installation
 
-Download the files with
+Download the latest version of the files from the current branch
 
 ```bash
 git clone --depth 1 --branch pipeline git@github.com:danieltomasz/psd-paths.git
@@ -14,16 +14,33 @@ then go to the folder you download  the repo and open terminal in it.
 
 This version of code uses `uv` package for dowanloading and managing packages.
 
-If you installed `uv` you can run `uv sync` in the folder or `make sync` to include also decelopmental dependencies.
+If you installed `uv` you can run `uv sync` in the folder or `make sync` to include also developmental dependencies.
 
 The **uv workspace** has two components:
 
 1. **Root project** (`psd-paths`): Main analysis scripts and `notebooks/` directory
-2. **spectral package** (`src/spectral/`): Reusable EEG processing utilities
+2. **spectral package** (`src/spectral/`)which are reusable EEG processing utilities
+and might be  released in the future as separate package.
 
 The `spectral` package is installed in editable mode via workspace configuration in `pyproject.toml`.
 
 ## Analysis
+
+The project uses `settings.toml` for configuration:
+
+**Key settings**:
+
+- `[paths]`: Project root and BIDS data paths
+- `[preprocessing]`: Channels to remove (bad channels by design)
+- `[experiment]`: Task name and parameters
+
+## Strategy of the analysis
+
+- **Hybrid ICA strategy**: Auto-suggest exclusions with ICLabel, allow manual review and re-application
+- **Re-entry from ICA**: Reprocess from ICA application onward without redoing expensive PyPREP/Autoreject
+- **MNE Report**: Use `mne.Report` for HTML QC reports, update after ICA re-application
+- **Per-subject settings**: Store parameters used for each subject for reproducibility
+- **2-stage pipeline**: Stage 1 (auto preprocessing + ICA model) → Human Review → Stage 2 (apply ICA + specparam)
 
 All notebooks are located in the `analysis` folder. The analysis is organized in a way that you can run each notebook independently, but they are also designed to be run sequentially.
 

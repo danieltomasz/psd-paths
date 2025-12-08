@@ -1,14 +1,14 @@
 [project]
 name = "psd-paths"
 version = "0.1.0"
-description = "Analysis of EEG Auditory Steady-State Response (ASSR) data from OpenNeuro dataset ds006780"
+description = "Analysis of EEG PATHS project data"
 readme = "README.md"
-requires-python = ">=3.13,<3.14"
+requires-python = ">=3.13, <=3.14"
 dependencies = [
     "mne",
     "polars",
     "plotnine",
-    "specparam>=2.0.0rc5",
+    "specparam>=2.0.0rc6",
     "pyrasa",
     "openneuro-py",
     "pandas",

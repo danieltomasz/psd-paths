@@ -28,3 +28,10 @@ _resources
 _archive/
 **/__marimo__/
 .venv/
+.ruff_cache/
+__pychache__/
+_resources/
+_output/
+claude.md
+py-context.txt
+*.ipynb

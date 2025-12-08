@@ -68,3 +68,11 @@ channels_to_remove = [
     "E255",
     "E256",
 ]
+
+[cleaning]
+# "epochs identified as bad on more than 40% bad channels were discarded"
+bad_epoch_channel_threshold = 0.40 
+ica_n_components = 0.99
+ica_method = "picard"
+# "fit_params=dict(ortho=False, extended=True)"
+ica_fit_params = { ortho = false, extended = true }
