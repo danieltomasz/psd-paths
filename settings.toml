@@ -72,7 +72,19 @@ channels_to_remove = [
 [cleaning]
 # "epochs identified as bad on more than 40% bad channels were discarded"
 bad_epoch_channel_threshold = 0.40 
+bad_epoch_threshold = 0.40    # "More than 40% bad channels"
+
 ica_n_components = 0.99
 ica_method = "picard"
 # "fit_params=dict(ortho=False, extended=True)"
 ica_fit_params = { ortho = false, extended = true }
+
+# Append this to your existing settings.toml
+
+[epochs]
+# Epoching parameters
+epoch_length = 5.0
+epoch_overlap = 3.0           # Explicitly 3.0s overlap duration (matches methodology)
+
+# Rejection parameters
+

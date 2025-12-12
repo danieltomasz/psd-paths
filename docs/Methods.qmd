@@ -1,0 +1,21 @@
+
+### EEG Data Analysis
+
+_EEG were first physically referenced to Cz (VREF) during recording_
+
+EEG data were analysed using **MNE-Python** (Gramfort et al., 2013; version 1.7). 
+
+_Bad fragments of data were identified using pyriemann package and annotated as bad._
+
+
+Data were originally recorded at 1000 Hz and resampled to **250 Hz** during analysis. 
+
+
+
+We dropped some channels to avoid artefacts.
+To eliminate line power noise, a **50 Hz notch filter** was applied, followed by a **1-40 Hz bandpass FIR filter**.
+
+Bad channels were identified using the Python implementation of the **Preprocessing Pipeline (PREP)** (Bigdely-Shamlo et al., 2015). These channels were temporarily excluded and later interpolated after Independent Component Analysis (ICA). The dataset was epoched into **5-second intervals** with a **3-second overlap** (1.5s padding on each side). The **Autoreject** library (Jas et al., 2017) was used to detect and annotate fragment excessive artifacts; epochs identified as bad on more than 40% of channels were marked as bad.
+
+ **ICA** was performed using the **PICARD** method (`ortho=False`, `extended=True`), aligning with the FastICA algorithm (Ablin, Cardoso, and Gramfort, 2018). The number of components was determined by capturing **99% of cumulative variance**. Components identified as artifacts (blinks, eye movements, heartbeat, muscular) were visually inspected and removed. Finally, signal from bad channels was reconstructed using **spline interpolation** (head radius 95.5 mm).
+

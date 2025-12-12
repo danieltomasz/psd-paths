@@ -1,6 +1,6 @@
 .ONESHELL:
 
-PROJECT?=spectral
+PROJECT?=psd-paths
 VERSION?=3.13
 VENV=${PROJECT}-${VERSION}
 

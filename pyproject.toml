@@ -3,7 +3,7 @@ name = "psd-paths"
 version = "0.1.0"
 description = "Analysis of EEG PATHS project data"
 readme = "README.md"
-requires-python = ">=3.13, <=3.14"
+requires-python = ">=3.13.11, <=3.14"
 dependencies = [
     "mne",
     "polars",
@@ -36,17 +36,14 @@ dependencies = [
 dev = [
     "pytest",
     "variable-inspector",
-    "black",
     "ruff",
     "jupytext",
     "ipykernel",
     "pip",
     "notebook",
-    "marimo[lsp]",
-    "pyzmq",
+    "scipy-stubs",
     "ipympl",
    "mne[full-pyqt6]",   
-   "jupytext",
     
 ]
 

@@ -1,0 +1,236 @@
+# ---
+# title: "Preprocessing of High-Density EEG Recordings"
+# format:
+#   html: default
+#   ipynb: default
+# execute:
+#   enabled: true
+# jupyter:
+#   jupytext:
+#     formats: ipynb,py:percent
+#     text_representation:
+#       extension: .py
+#       format_name: percent
+#       format_version: '1.3'
+#       jupytext_version: 1.18.1
+#   kernelspec:
+#     display_name: psd-paths-3.13
+#     language: python
+#     name: psd-paths-3.13
+# ---
+
+# %% [raw] vscode={"languageId": "raw"}
+# %matplotlib widget
+
+# %%
+from pathlib import Path
+
+import mne
+import matplotlib.pyplot as plt
+import numpy as np
+
+from spectral.utils import ProjectPaths, print_timestamp, load_config
+from spectral.preproc import load_data
+from spectral.annotation import (
+    run_pyprep_cleaning,
+    annotate_bads_to_raw,
+    apply_potato_to_raw,
+)
+
+from spectral.epochs import create_epochs, get_reject_log
+from spectral.ica import compute_ica
+
+
+mne.viz.set_browser_backend("matplotlib")
+# mne.viz.set_browser_backend("qt")
+mne.set_config("MNE_BROWSER_THEME", "light")
+
+
+# %%
+subject_id = "170"
+# Initialize paths for your subject
+paths = ProjectPaths(subject_id)
+
+# Create all directories
+paths.create_directories()
+
+# Print paths to verify
+print_timestamp("Setting up project paths")
+paths.show()
+
+
+# %%
+config = load_config()
+
+# Access the bad channels list
+bad_channels = config["preprocessing"]["channels_to_remove"]
+print(f"Channels to remove: {bad_channels}")
+
+raw = load_data(subject_id, data_path=paths.data)
+raw = raw.drop_channels(bad_channels)
+
+# %%
+raw_potato = apply_potato_to_raw(raw, h_freq=40.0)
+
+
+# %%
+# 1. Initialize the Report object (if you haven't already)
+report = mne.Report(title="Subject Analysis Report", verbose=True)
+report.add_raw(raw, title="1. Raw Data (Original)", psd=True, tags=("raw", "original"))
+
+total_duration = raw.times[-1]
+
+raw_psd = (
+    raw_potato.copy()
+    .crop(tmin=3.0, tmax=total_duration - 3, include_tmax=True)
+    .compute_psd(fmax=60.0, method="welch", picks="eeg", exclude="bads")
+)
+
+fig1, ax = plt.subplots(figsize=(10, 5))
+raw_psd.plot(
+    average=False, picks="eeg", exclude="bads", show=False, axes=ax, amplitude=False
+)
+ax.set_title(f"sub-{subject_id} PSD after POTATO but before filtering")
+
+fig1.show()
+
+# %%
+# 2. Add the figure to the MNE Report
+# 'fig' is the matplotlib figure object you created above
+report.add_figure(
+    fig=fig1, 
+    title="PSD Analysis", 
+    caption=f"Power Spectral Density for sub-{subject_id}", 
+    tags=("psd", "spectroscopy")
+)
+
+# %%
+fline = [50, 100]  # Line noise frequencies
+h_freq = 45
+l_freq = 1
+total_duration = raw.times[-1]
+
+
+filter_params = {
+    "l_freq": l_freq,
+    "h_freq": h_freq,
+    "h_trans_bandwidth": "auto",
+    "fir_window": "hamming",
+    "fir_design": "firwin",
+    "phase": "zero",
+    "picks": ["ecg", "eeg"],
+}
+
+standard_scalings = {
+    "eeg": 60e-6,  # 40 µV (Good for clean brainwaves)
+    "ecg": 500e-6,  # 500 µV (ECG is naturally much larger)
+    "eog": 150e-6,
+}
+raw_filtered = (
+    raw_potato.copy()
+    .resample(250, method="polyphase", verbose=True)
+    .notch_filter(
+        freqs=fline, 
+        method="spectrum_fit",  # 'spectrum_fit' prevents the ringing artifacts
+        picks=["eeg", "ecg"]
+    )
+    .filter(**filter_params)
+    .crop(tmin=3.0, tmax=total_duration - 3, include_tmax=True)
+)
+
+report.add_raw(raw_filtered, title="Raw filtered", psd=True, tags=("filtered"))
+raw_filtered.copy().plot(scalings=standard_scalings, butterfly=True)
+
+raw_psd = (
+    raw_filtered.copy()
+    .compute_psd(fmax=60.0, method="welch", picks="eeg", exclude="bads")
+)
+fig2, ax = plt.subplots(figsize=(10, 5))
+raw_psd.plot(
+    average=False, picks="eeg", exclude="bads", show=False, axes=ax, amplitude=False
+)
+ax.set_title(f"sub-{subject_id} PSD")
+fig2.show()
+
+report.add_figure(
+    fig=fig2, 
+    title="PSD Analysis after filtering", 
+    caption=f"Power Spectral Density for sub-{subject_id}", 
+    tags=("psd", "spectroscopy"))
+
+# %%
+# 1. Run detection (ensure raw_filtered has a montage set)
+bads_dict = run_pyprep_cleaning(raw_filtered, output_mode="all")
+
+# 2. Annotate the raw object
+# Using inplace=True prevents duplicating data in memory
+raw_annotated, reasons = annotate_bads_to_raw(raw_filtered, bads_dict)
+print(raw_annotated.info["bads"])
+sensor_plot = raw_annotated.plot_sensors(show_names=True)
+# 3. Inspect results
+raw_annotated.save(
+    f"{paths.preprocessed}/sub-{subject_id}_raw_annotated_filtered_raw.fif",
+    overwrite=True,
+)
+report.add_figure(
+    fig=sensor_plot, 
+    title="Sensor plot", 
+    caption=f"Power Spectral Density for sub-{subject_id}", 
+    tags=("psd", "spectroscopy"))
+
+# %%
+# 1. Access the list of bads currently stored in the raw object [cite: 162]
+bads_list = raw_annotated.info["bads"]
+
+# 2. Check if the list is not empty
+if bads_list:
+    print(f"Plotting bad channels: {bads_list}")
+
+    # --- FIGURE 1: Bad Channel Traces (The actual wiggle lines) ---
+    # We create the plot and assign it to a variable
+    fig_traces = raw_annotated.copy().pick(bads_list).plot(
+        duration=300.0,
+        scalings=dict(eeg=1e-4),
+        show_scrollbars=False,
+        title="View of Annotated Bad Channels",
+        show=False  # Important for reports
+    )
+    
+    # Add Traces to Report
+    report.add_figure(
+        fig=fig_traces, 
+        title="Bad Channel Traces", 
+        caption=f"Raw traces of marked bad channels for sub-{subject_id}", 
+        tags=("bad_channels", "traces")
+    )
+    plt.close(fig_traces) # Close to save memory
+
+    # --- FIGURE 2: Sensor Locations (The 'sensor_plot' you were missing) ---
+    # This shows WHERE the bad channels are on the head 
+    sensor_plot = raw_annotated.plot_sensors(
+        show_names=True, 
+        show=False
+    )
+
+    # Add Sensor Map to Report
+    report.add_figure(
+        fig=sensor_plot, 
+        title="Bad Channel Locations", 
+        caption=f"Topography of bad channels (red) for sub-{subject_id}", 
+        tags=("bad_channels", "sensors")
+    )
+    plt.close(sensor_plot) 
+    
+else:
+    print("No channels are currently marked as 'bad' in raw_annotated.")
+
+# %% [markdown]
+# This section generates an HTML report to inspect raw data, 
+# artifact removal efficiency, and spectral features.
+
+# %%
+# 6. Save the Report
+# We construct the path using the 'paths' object from your utils.
+report_path = paths.reports / f"sub-{subject_id}_preprocessing_report.html"
+report.save(report_path, overwrite=True, open_browser=True)
+print(f"Report saved to: {report_path}")
