@@ -25,6 +25,7 @@ def load_data(
     data_path: Union[str, Path],
     session: str = "01",
     task: Optional[str] = None,
+    rename_vref: bool = False  # <--- Added option
 ) -> mne.io.Raw:
     """
     Load EEG data from BIDS-formatted directory with automatic format detection.
@@ -137,10 +138,22 @@ def load_data(
         raw.set_channel_types(ecg_mapping)
         print(f"Identified ECG channels: {ecg_channels}")
 
-    # Remove 'VREF' channel if it exists
+# --- MODIFIED SECTION START ---
     if "VREF" in raw.ch_names:
-        raw.drop_channels(["VREF"])
-        print("Removed 'VREF' channel.")
+        if rename_vref:
+            # Rename VREF to Cz
+            print("Renaming 'VREF' channel to 'Cz'...")
+            raw.rename_channels({"VREF": "Cz"})
+            
+            # Mark as bad (Reference)
+            if "Cz" not in raw.info["bads"]:
+                raw.info["bads"].append("Cz")
+                print(f"Marked 'Cz' as bad channel (Reference)")
+        else:
+            # Old behavior: drop the channel
+            raw.drop_channels(["VREF"])
+            print("Removed 'VREF' channel.")
+    # --- MODIFIED SECTION END ---
 
     # Apply montage
     print("Applying GSN-HydroCel-256 montage...")

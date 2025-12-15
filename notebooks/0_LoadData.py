@@ -30,7 +30,7 @@ from mne_bids import BIDSPath, write_raw_bids
 raw_dir_path = "/Users/daniel/PhD/Projects/psd-paths/data/orginal"
 
 # Output: The folder where you want the BIDS structure to be created
-output_dir = "/Users/daniel/PhD/Projects/psd-paths/data//bids"
+output_dir = "/Users/daniel/PhD/Projects/psd-paths/data/bids"
 # ==========================================
 
 
