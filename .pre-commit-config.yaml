@@ -4,4 +4,4 @@ repos:
     hooks:
     -   id: nbstripout
         # Only clean files inside the 'WIP' folder
-        files: ^WIP/
+        files: ^(WIP/|notebooks/)
