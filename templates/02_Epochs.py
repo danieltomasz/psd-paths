@@ -34,14 +34,14 @@ raw_annotated = mne.io.read_raw_fif(fname, preload=True)
 # %%
 total_duration = raw_annotated.times[-1]
 
-raw_annotated.crop(tmin=3.0, tmax=total_duration - 3, include_tmax=True).compute_psd(fmin=1, fmax=50, picks="eeg", exclude="bads").plot(spatial_colors=True)
+raw_annotated.compute_psd(fmin=1, fmax=50, picks="eeg", exclude="bads").plot(spatial_colors=True)
 
 # %%
 
 
 epochs = create_epochs(raw_annotated, overlap=1.5, reject_by_annotation = False)
 
-reject_log = get_reject_log(epochs, resample=125, n_interpolate=[1], consensus=[0.35])
+reject_log = get_reject_log(epochs, resample=125, n_interpolate=[1], consensus=[0.40])
 reject_plot = reject_log.plot("vertical")
 
 

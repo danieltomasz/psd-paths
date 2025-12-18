@@ -61,11 +61,15 @@ def raw_filtered(
     raw_potatoed: mne.io.Raw, filter_params: dict, fline: list
 ) -> mne.io.Raw:
     """Applies bandpass filter to raw data"""
+    total_duration = raw_potatoed.times[-1]
+
     raw_temp = (
         raw_potatoed.copy()
         .resample(250, method="polyphase", verbose=True)
         .notch_filter(freqs=fline, method="fir", picks=["eeg", "ecg"])
         .filter(**filter_params)
+        .crop(tmin=3.0, tmax=total_duration - 3, include_tmax=True)
+
     )
 
     return raw_temp

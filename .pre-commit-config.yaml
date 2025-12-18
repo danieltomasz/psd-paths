@@ -4,4 +4,5 @@ repos:
     hooks:
     -   id: nbstripout
         # Only clean files inside the 'WIP' folder
-        files: ^(WIP/|notebooks/)
+        files: ^(templates/|notebooks/)
+        args: ["--extra-keys", "metadata.kernelspec"]

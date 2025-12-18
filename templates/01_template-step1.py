@@ -1,6 +1,7 @@
 # ---
 # jupyter:
 #   jupytext:
+#     formats: ipynb,py:percent
 #     text_representation:
 #       extension: .py
 #       format_name: percent
@@ -33,7 +34,7 @@ from spectral.helpers import style_cfg
 
 filter_params = {
     "l_freq": 1.0,
-    "h_freq": 45.0,
+    "h_freq": 40.0,
     "h_trans_bandwidth": "auto",
     "fir_window": "hamming",
     "fir_design": "firwin",
@@ -62,6 +63,7 @@ results = dr.execute(
     ],
     inputs=inputs,
 )
+
 
 
 # %% [markdown]

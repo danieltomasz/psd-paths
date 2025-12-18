@@ -1,3 +1,0 @@
-# jupytext.toml
-# This pairs ALL notebooks in this folder (and subfolders) automatically
-formats = "ipynb,py:percent"

@@ -41,3 +41,4 @@ pipeline/
 **/*.quarto_ipynb
 **/__pychache__/
 **/Icon?
+outputs_archive/

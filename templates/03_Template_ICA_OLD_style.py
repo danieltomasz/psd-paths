@@ -268,6 +268,81 @@ except Exception as e:
 
 # %%
 from mne_icalabel import label_components
+
+def plot_annotated_topographies(ica, eeg_data, ic_labels, report=None):
+    """
+    Plots all ICA component topographies annotated with ICLabel names and probabilities.
+    """
+    labels = ic_labels["labels"]
+    probs = ic_labels["y_pred_proba"]
+    
+    # Create titles mapping IC index to "Label (Probability%)"
+    titles = {
+        i: f"IC{i:02d}: {label} ({probs[i]*100:.1f}%)" 
+        for i, label in enumerate(labels)
+    }
+
+    # Generate topographies. Use inst=eeg_data to ensure proper spatial context.
+    figs = ica.plot_components(inst=eeg_data, title="ICA Component Classification", show=False)
+    
+    if not isinstance(figs, list):
+        figs = [figs]
+
+    ic_idx = 0
+    for i, fig in enumerate(figs):
+        # Apply custom titles to each subplot axis
+        for ax in fig.axes:
+            if ic_idx < len(labels):
+                ax.set_title(titles[ic_idx], fontsize=9)
+                ic_idx += 1
+        
+        # Display in notebook and add to MNE Report
+        display(fig)
+        if report is not None:
+            report.add_figure(fig, title=f"ICA Topographies - Page {i+1}")
+
+    return figs
+
+def plot_component_properties(ica, eeg_data, picks, ic_labels=None, report=None, save_path=None, subject=""):
+    """
+    Plots detailed properties for a specific list of component indices.
+    """
+    if not picks:
+        print("No components provided for property plotting.")
+        return []
+
+    # Get labels for titles if provided
+    titles = {}
+    if ic_labels:
+        for i in picks:
+            label = ic_labels["labels"][i]
+            prob = ic_labels["y_pred_proba"][i]
+            titles[i] = f"IC {i:02d}: {label} ({prob*100:.1f}%)"
+    else:
+        titles = {i: f"IC {i:02d}" for i in picks}
+
+    # Generate property plots
+    figs = ica.plot_properties(eeg_data, picks=picks, show=False, psd_args={"fmax": 100.0})
+
+    for i, fig in zip(picks, figs):
+        fig.suptitle(titles[i], fontsize=12)
+        display(fig)
+        
+        # Save to disk if path is provided
+        if save_path:
+            label_slug = titles[i].split(":")[1].split("(")[0].strip().replace(" ", "-")
+            filename = f"sub-{subject}_IC{i:02d}_{label_slug}.png"
+            fig.savefig(f"{save_path}/{filename}", dpi=300, bbox_inches="tight")
+
+        # Add to MNE Report
+        if report is not None:
+            report.add_figure(fig, title=f"Properties {titles[i]}", tags=("ica", "artifact"))
+
+    return figs
+
+
+# %%
+
 def plot_ica_by_label(ica, eeg_data, ic_labels, report=None):
     """
     Plots ICA components grouped by their ICLabel classification.
@@ -319,6 +394,37 @@ def plot_ica_by_label(ica, eeg_data, ic_labels, report=None):
 
     return figs
 
+
+# %%
+# 1. Classify
+ic_labels = label_components(clean_raw, ica, method="iclabel")
+
+# 2. Plot all topographies with their labels
+plot_annotated_topographies(ica, clean_raw, ic_labels, report=report)
+
+# 3. Identify components to exclude (Manual ECG + Automated Artifacts)
+artifacts = ["eye blink", "muscle artifact", "heart beat", "line noise", "channel noise"]
+bad_indices = [
+    i for i, label in enumerate(ic_labels["labels"]) 
+    if label in artifacts and ic_labels["y_pred_proba"][i] > 0.90
+]
+
+# Merge with your manual ecg_indices from the previous step
+final_picks = list(set(bad_indices + list(ecg_indices)))
+
+# 4. Plot properties for ONLY the components we are worried about
+plot_component_properties(
+    ica, 
+    clean_raw, 
+    picks=final_picks, 
+    ic_labels=ic_labels, 
+    report=report,
+    save_path=figures_path,
+    subject=subject_id
+)
+
+# 5. Set the exclusion list
+ica.exclude = final_picks
 
 # %%
 import numpy as np
@@ -546,13 +652,15 @@ fg = SpectralGroupModel(
     verbose=False,
 )
 
+freq_range = [2, 35]
+
 # %%
 psd = epochs_interpolated.compute_psd().average()
 spectra, freqs = psd.get_data(return_freqs=True)
 # Initialize a FOOOFGroup object, with desired settings
 
 # Define the frequency range to fit
-freq_range = [2, 40]
+
 with np.errstate(divide='ignore', invalid='ignore', over='ignore'):
     fg.fit(freqs, spectra, freq_range)
 fg.plot()
