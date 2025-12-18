@@ -1,19 +1,32 @@
 from mne_icalabel import label_components
 from mne.preprocessing import ICA
 
+def ica_params(config: dict) -> dict:
+    """Extract ICA parameters from config"""
+    # Check if ica_params is provided directly in config
+    if "ica_params" in config:
+        return config["ica_params"]
+    
+    # Otherwise, load from config["ica"] section
+    return config.get("ica", {
+        "n_components": 0.99,
+        "method": "picard",
+        "max_components": 50,
+        "random_state": 99
+    })
 
 def compute_ica(
     eeg_data,
     reject_log=None,
     n_components=0.999,
     method="picard",
-    random_state: int = 99,
+    random_state: int = 99
 ):
-    """Compute ICA on the data without really bad epochs"""
+    """Compute ICA on the data"""
     ica = ICA(
         n_components=n_components,
         random_state=random_state,
-        method="picard",
+        method=method,
         fit_params=dict(ortho=False, extended=True),
     )
     ica.fit(eeg_data)
@@ -22,28 +35,26 @@ def compute_ica(
 
 
 def label_components_ica(eeg_data, ica):
-    """Assign the IC labels"""
-
+    """Assign the IC labels using ICLabel"""
     ic_labels = label_components(eeg_data, ica, method="iclabel")
     labels = ic_labels["labels"]
     return labels, ic_labels
 
 
-def get_values(labels, ic_labels, threshold=0.8):
-    """Get the indices of the labels"""
+def get_labeled_components(labels, ic_labels, threshold=0.8):
+    """Get the indices of components by label with probability threshold"""
     element_indices = {}
     element_indices["bad_prob_class"] = []
-    prababilities = ic_labels["y_pred_proba"]
+    probabilities = ic_labels["y_pred_proba"]
 
     for i, element in enumerate(labels):
-        if prababilities[i] > 0.8:
+        if probabilities[i] > threshold:
             if element not in element_indices:
                 element_indices[element] = []
             element_indices[element].append(i)
         else:
             element_indices["bad_prob_class"].append(i)
 
-    # display(element_indices)
     return element_indices
 
 

@@ -94,23 +94,4 @@ def plot_bad_channels(raw, subject, figures_path):
     plt.close()
 
 
-def visualise_bad_epochs(reject_log):
-    """Visualise the bad epochs and channels."""
-    bads = np.logical_or(reject_log.labels == 1, reject_log.labels == 2)
-    plt.imshow(bads, cmap="viridis")
-    plt.colorbar(orientation="horizontal", pad=0.1)
-    plt.show()
 
-    print(f"Currently removed number of epochs {np.sum(reject_log.bad_epochs)}")
-    # print(bads)
-    # print(bads.shape)
-    good_epochs_percentage = (1 - bads.mean(axis=1)) * 100
-
-    # print("Percentage of bad epochs in each epoch:")
-    # display(good_epochs_percentage)
-
-    print("Percentage of good epochs in each  candidate for removal epoch:")
-    for i in range(0, len(good_epochs_percentage)):
-        if good_epochs_percentage[i] < 75:
-            print(f"Epoch {i}: {good_epochs_percentage[i]:.2f}%")
-            # print(f"Epoch {i}: {good_epochs_percentage[i]:.2f}%")

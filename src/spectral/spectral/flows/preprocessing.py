@@ -2,7 +2,7 @@
 import mne
 import matplotlib.pyplot as plt
 from hamilton.function_modifiers import parameterize, tag, source, value
-
+from typing import Optional
 from spectral.utils import ProjectPaths, load_config
 from spectral.preproc import load_data
 from spectral.annotation import (
@@ -77,7 +77,7 @@ def raw_annotated_pyprep(raw_filtered: mne.io.Raw, paths: ProjectPaths) -> mne.i
     annotations = run_pyprep_cleaning(raw_temp)
     raw_annotated, reasons = annotate_bads_to_raw(raw_temp, annotations)
     raw_annotated.save(
-        f"{paths.preprocessed}/{paths.subject_id}_raw_annotated_filtered_raw.fif",
+        f"{paths.preprocessed}/sub-{paths.subject_id}_annotated_filtered_raw.fif",
         overwrite=True,
     )
     return raw_annotated
@@ -113,13 +113,61 @@ def psd_plot(data_input: mne.io.Raw, subject_id: str, stage_name: str) -> plt.Fi
     plt.close(fig)
     return fig
 
+@tag(kind="visualization")
+def plot_bad_traces(
+    raw_annotated_pyprep: mne.io.Raw, 
+    subject_id: str
+) -> plt.Figure:
+    """
+    Plots the raw traces of ONLY the marked bad channels.
+    """
+    bads = raw_annotated_pyprep.info["bads"]
+    
+    # Handle case where there are no bad channels
+    if not bads:
+        fig, ax = plt.subplots(figsize=(6, 2))
+        ax.text(0.5, 0.5, "No Bad Channels Marked", ha="center", va="center")
+        ax.axis("off")
+        return fig
+
+    # Plot logic from your snippet
+    # Note: We use .pick() to isolate just the bads
+    fig = raw_annotated_pyprep.copy().pick(bads).plot(
+        duration=295.0,            # As per your snippet
+        scalings=dict(eeg=1e-4),   # As per your snippet
+        show_scrollbars=False,
+        show=False,                # Crucial for pipeline
+        title=f"Bad Channel Traces (Subject {subject_id})"
+    )
+    
+    # MNE raw.plot() sometimes returns a Browser object, we need the Figure
+    # In 'matplotlib' backend, fig is the Figure.
+    plt.close(fig) 
+    return fig
+
+@tag(kind="visualization")
+def plot_bad_sensors(
+    raw_annotated_pyprep: mne.io.Raw, 
+    subject_id: str
+) -> plt.Figure:
+    """
+    Plots the topography of sensors, highlighting bad ones in red.
+    """
+    fig = raw_annotated_pyprep.plot_sensors(
+        show_names=True, 
+        kind="topomap",  # 'topomap' or '3d'
+        show=False,
+        title=f"Bad Sensor Locations (Subject {subject_id})"
+    )
+    plt.close(fig)
+    return fig
 
 # --- NODE: Add Plots to Report ---
 @tag(kind="report")  # <--- Add this tag
 def report_with_psd(
     report_initialized: mne.Report, 
     plot_raw_psd: plt.Figure,       # <--- Input 1: The Raw Plot
-    plot_filtered_psd: plt.Figure   # <--- Input 2: The Filtered Plot
+    plot_filtered_psd: plt.Figure,   # <--- Input 2: The Filtered Plot
 ) -> mne.Report:
     """Adds both PSD figures to the report"""
     
@@ -137,29 +185,62 @@ def report_with_psd(
         title="PSD (Cleaned Data)", 
         caption="Power Spectral Density after filtering and PyPrep",
         tags=("psd", "clean")
-    )
-    
+    )               
+
     return report_initialized 
 
+# --- NODE: Add Bad Channel Plots to Report ---
+@tag(kind="report")
+def report_with_bads(
+    report_with_psd: mne.Report,  # or whatever your previous report step is
+    plot_bad_traces: plt.Figure,
+    plot_bad_sensors: plt.Figure
+) -> mne.Report:
+    """Adds bad channel diagnostics to the report"""
+    
+    # 1. Add Traces
+    report_with_psd.add_figure(
+        fig=plot_bad_traces,
+        title="Bad Channel Traces",
+        caption="Raw signal of channels marked as bad.",
+        tags=("bad_channels", "traces")
+    )
+    
+    # 2. Add Sensor Map
+    report_with_psd.add_figure(
+        fig=plot_bad_sensors,
+        title="Bad Channel Map",
+        caption="Topography showing location of bad sensors (red).",
+        tags=("bad_channels", "sensors")
+    )
+    
+    return report_with_psd
+
 # --- NODE: Save Report ---
-@tag(kind="report")  # <--- Add this tag
+@tag(kind="report")
 def report_saved_path(
-    report_with_psd: mne.Report, 
+   report_with_bads: mne.Report,  # This matches the LAST step of your report chain
     paths: ProjectPaths, 
     subject_id: str
 ) -> str:
     """
-    Saves the MNE report to an HTML file.
-    Returns the absolute path to the saved file.
+    Saves the report to both .h5 (for future editing) and .html (for viewing).
+    Returns the HTML path for display.
     """
-    # 1. Construct the filename
-    filename = f"sub-{subject_id}_preprocessing_report.html"
-    out_path = paths.reports / filename
+    # 1. Define filenames
+    base_name = f"sub-{subject_id}_report"
+    h5_path = paths.reports / f"{base_name}.h5"
+    html_path = paths.reports / f"{base_name}.html"
     
-    # 2. Ensure directory exists (good safety practice)
-    out_path.parent.mkdir(parents=True, exist_ok=True)
+    # 2. Ensure directory exists
+    h5_path.parent.mkdir(parents=True, exist_ok=True)
     
-    # 3. Save (open_browser=False prevents it from popping up during batch runs)
-    report_with_psd.save(out_path, overwrite=True, open_browser=False)
+    # 3. Save H5 (The Editable Object)
+    # This preserves tags, captions, and figure objects for the next pipeline
+    report_with_bads.save(h5_path, overwrite=True)
     
-    return str(out_path)
+    # 4. Save HTML (The Viewable Result)
+    # open_browser=False is crucial for batch processing
+    report_with_bads.save(html_path, overwrite=True, open_browser=False)
+    
+    return str(html_path)

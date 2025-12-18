@@ -64,7 +64,7 @@ _Bad fragments of data were identified using pyriemann package (riemanian potato
 
 A bandpass filter between 1 and 45 Hz was applied  using FIR filter. Bad channels were identified using the Python implementation of the Preprocessing Pipeline (PREP, @bigdely-shamlo2015PREPPipelineStandardized), were temporarily excluded from analysis and  later extrapolated after performing Independent Component Analysis (ICA).
 
-Dataset was epoched into 5s intervals, with 3s overlap between epochs (1.5s on each side).
+The continuous data were segmented into 5s epochs with a 1.5s overlap between adjacent segments (representing a 30% overlap). This resulted in a 3.5s stride between epoch onsets.
 The Autoreject library [@jas2017AutorejectAutomatedArtifact] was used to detect and remove epochs containg  huge artifacts (epochs identified as bad on more than 40% bad channels were discarded). ICA was  performed on the data using a variable number of the components determined by capturing 99% of cumulative variance. The picard method was employed
 with the settings `fit_params=dict(ortho=False, extended=True)`, which aligns with  extended Infomax algorithm [@ablin2018FasterIndependentComponent].
 <!-- change into infoMAx -->

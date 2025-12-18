@@ -36,3 +36,8 @@ claude.md
 py-context.txt
 .tmp.driveupload/
 .idea/
+pipeline/
+.claude/
+**/*.quarto_ipynb
+**/__pychache__/
+**/Icon?

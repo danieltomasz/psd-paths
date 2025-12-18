@@ -30,8 +30,8 @@ dependencies = [
     "gedai",
     "pyriemann",
     "mne-icalabel[stubs]",
-    "elyra",
-    "papermill"
+    "papermill",
+    "jsonschema-specifications"
 ]
 
 [project.optional-dependencies]
@@ -46,8 +46,7 @@ dev = [
     "scipy-stubs",
     "ipympl",
    "mne[full-pyqt6]",   
-   "sf-hamilton",
-   'sf-hamilton[visualization]'
+   "sf-hamilton[visualization]"
     
 ]
 
