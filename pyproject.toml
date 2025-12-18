@@ -46,7 +46,9 @@ dev = [
     "scipy-stubs",
     "ipympl",
    "mne[full-pyqt6]",   
-   "sf-hamilton[visualization]"
+   "sf-hamilton[visualization]",
+   "nbstripout",
+   "pre-commit"
     
 ]
 

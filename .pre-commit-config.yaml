@@ -1,0 +1,7 @@
+repos:
+-   repo: https://github.com/kynan/nbstripout
+    rev: 0.8.1
+    hooks:
+    -   id: nbstripout
+        # Only clean files inside the 'WIP' folder
+        files: ^WIP/
