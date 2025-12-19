@@ -1,80 +1,179 @@
-# EEG PSD-PATHS pipeline
+# EEG PSD-PATHS Pipeline
 
-This is an EEG analysis pipeline for processing resting-state EEG data and extracting Power Spectral Density (PSD) features in the PATHS project. The project uses high-density EEG recordings (256-channel GSN-HydroCel montage) and processes them through filtering, artifact removal, ICA component extraction, and spectral parameterization using the `specparam' library.
+**Version 0.1.0** - Automated batch processing pipeline for PATHS project EEG data
+
+This is an automated EEG analysis pipeline for processing resting-state EEG data and extracting Power Spectral Density (PSD) features in the PATHS project. The project uses high-density EEG recordings (256-channel GSN-HydroCel montage) and processes them through filtering, artifact removal, ICA component extraction, and spectral parameterization using the `specparam` library.
+
+## Features
+
+- **Automated 3-stage pipeline** with template-based processing using Papermill
+- **Parallel batch processing** with configurable job concurrency
+- **Hybrid ICA strategy** with auto-suggestion and manual review capability
+- **Comprehensive logging** with per-subject and pipeline-level reports
+- **Reproducible workflows** using workspace-based package management
 
 ## Installation
 
-Download the latest version of the files from the current branch
+Download the stable release (v0.1.0) from the `release-0.1` branch:
 
 ```bash
-git clone --depth 1 --branch pipeline git@github.com:danieltomasz/psd-paths.git
+git clone  release-0.1 git@github.com:danieltomasz/psd-paths.git
+cd psd-paths
 ```
 
-then go to the folder you download  the repo and open terminal in it.
+This project uses `uv` for package management. If you have `uv` installed:
 
-This version of code uses `uv` package for dowanloading and managing packages.
+```bash
+uv sync              # Install dependencies
+# or
+make sync            # Install with development dependencies
+```
 
-If you installed `uv` you can run `uv sync` in the folder or `make sync` to include also developmental dependencies.
+then install the kernel with
+
+```bash
+make kernel
+```
 
 The **uv workspace** has two components:
 
-1. **Root project** (`psd-paths`): Main analysis scripts and `notebooks/` directory
-2. **spectral package** (`src/spectral/`)which are reusable EEG processing utilities
-and might be  released in the future as separate package.
+1. **Root project** (`psd-paths`): Main analysis scripts and pipeline runner
+2. **spectral package** (`src/spectral/`): Reusable EEG processing utilities (editable workspace dependency)
 
-The `spectral` package is installed in editable mode via workspace configuration in `pyproject.toml`.
+## Configuration
 
-## Analysis
-
-The project uses `settings.toml` for configuration:
-
-**Key settings**:
+The project uses `settings.toml` for analysis parameters:
 
 - `[paths]`: Project root and BIDS data paths
 - `[preprocessing]`: Channels to remove (bad channels by design)
 - `[experiment]`: Task name and parameters
 
-## Strategy of the analysis
+## Pipeline Architecture
 
-- **Hybrid ICA strategy**: Auto-suggest exclusions with ICLabel, allow manual review and re-application
+### Automated 3-Stage Processing
+
+The pipeline uses **template-based notebooks** parameterized with Papermill:
+
+1. **Stage 1** - `01_template-step1.ipynb`: Preprocessing
+   - Bad channel removal
+   - Bandpass and Notch filter application
+   - Annotation of patch channels
+   - Data quality checks
+
+2. **Stage 2** - `02_Epochs.ipynb`: Epoching and PSD Analysis
+   - Epoch extraction
+   - Automatic bad epochs rejection
+
+3. **Stage 3** - `03_Template_ICA_OLD_style.ipynb`: ICA and Spectral Parameterization
+   - Independent Component Analysis with ICLabel
+   - Bad ica component rejection
+   - Spectral parameterization using `specparam`
+
+### Hybrid ICA Strategy
+
+- **Auto-suggest exclusions** with ICLabel for initial component classification
+- **Manual review** capability for quality control
 - **Re-entry from ICA**: Reprocess from ICA application onward without redoing expensive PyPREP/Autoreject
-- **MNE Report**: Use `mne.Report` for HTML QC reports, update after ICA re-application
-- **Per-subject settings**: Store parameters used for each subject for reproducibility
-- **2-stage pipeline**: Stage 1 (auto preprocessing + ICA model) → Human Review → Stage 2 (apply ICA + specparam)
+- **MNE Reports**: HTML QC reports, updateable after ICA re-application
+- **Per-subject settings**: Parameters stored for full reproducibility
 
-All notebooks are located in the `analysis` folder. The analysis is organized in a way that you can run each notebook independently, but they are also designed to be run sequentially.
+## Running the Pipeline
 
-### 0. Copy .mff files to the project folder
+### Batch Processing
 
-There is a notebook called `EnsureFolderStructure.ipynb` which will copy unstructured  'mff' files into subfolder per subject called . Define paths of input and output folders and run cell manually. If you have already copied the files, you can skip this step.
+Use `templates/run_pipeline.py` to process multiple subjects in parallel:
 
-In the settings.toml file you can define the parameters for the analysis, such as the channels to remove, filter parameters, etc. You should also define your local path to the project, it will be used later by some functions to find the data and save the results.
+```python
+# Run all stages for all subjects
+python templates/run_pipeline.py
 
-### 1. Preprocessing
+# Configure in the script:
+# - N_JOBS = 4              # Parallel job count
+# - steps_to_run = [1,2,3]  # Which stages to execute
+# - n_subjects = None       # Limit subject count (None = all)
+```
 
-This step is done in the notebook `sub-101-step-1-filter-raw-notch.ipynb`. It will load the raw data, apply notch filter, remove bad channels, and save the preprocessed data. The preprocessed data will be saved as epochs in the  `data/epochs` folder.
+The pipeline will:
 
-### 2. ICA and Extracting PSD features
+- Discover subjects from BIDS directory automatically
+- Execute notebook templates with subject-specific parameters
+- Process subjects in parallel (configurable with `N_JOBS`)
+- Generate processed notebooks in `outputs/pipeline/sub-{ID}/`
+- Collect logs in `outputs/log/pipeline_{timestamp}.log`
 
-This step is done in the notebook `sub-101-step_2-ica-specparam.ipynb`. It will load the preprocessed data, run ICA, and extract the spectral features. The features will be saved in the `outputs/specparam` folder.
+### Pipeline Configuration
 
-## Running analysis for many sunbjects
+Edit `templates/run_pipeline.py` to customize:
 
-You  can duplicate notebooks for each subject to run the same analysis, you just need to change the subject ID in the notebook name and in the code. The structure of the folders will be the same for each subject.
+```python
+BIDS_ROOT = Path("/path/to/data/bids")           # Input data location
+OUTPUT_ROOT = Path("/path/to/outputs/pipeline")  # Processed notebooks
+OUTPUT_LOG = Path("/path/to/outputs/log")        # Log files
+N_JOBS = 4                                       # Parallel workers
+KERNEL_NAME = "psd-paths-3.13"                   # Jupyter kernel
+```
 
-## Export notebooks as PDF (requires LaTeX installed)
+### Output Organization
 
-Ensure latex packaeges are installed
+```
+outputs/
+├── pipeline/
+│   └── sub-{ID}/
+│       ├── sub-{ID}_step1-preprocessing.ipynb
+│       ├── sub-{ID}_step1b-epochs-psd-analysis.ipynb
+│       └── sub-{ID}_step2-psd-analysis.ipynb
+└── log/
+    └── pipeline_{timestamp}.log
+```
+
+## Project Structure
+
+```
+psd-paths/
+├── templates/              # Pipeline notebook templates
+│   ├── 01_template-step1.ipynb
+│   ├── 02_Epochs.ipynb
+│   ├── 03_Template_ICA_OLD_style.ipynb
+│   └── run_pipeline.py    # Batch processing runner
+├── src/spectral/          # Reusable EEG utilities (workspace package)
+|-- data/
+    |-- bids.              # data transformed into bids structure
+    |___derricarives.      # Proudcts of analysis and processing
+├── outputs/
+    |---reports.           # Saved reports html files
+│   ├── pipeline/          # Processed notebooks per subject
+│   └── log/               # Pipeline execution logs
+    |__ specparam          # Saved estimated specparam parameters  
+├── notebooks/             # Development and exploration notebooks
+├── settings.toml          # Analysis configuration
+└── pyproject.toml         # Project dependencies and workspace config
+```
+
+## Version Information
+
+- **Current Release**: v0.1.0 (stable baseline release)
+- **Branch**: `release-0.1` (tagged snapshot for reproducibility)
+- **Python**: >=3.13.11, <=3.14
+
+View releases and tags at: <https://github.com/danieltomasz/psd-paths/releases>
+
+## Export and Documentation
+
+### Export notebooks as PDF (requires LaTeX)
+
+Ensure LaTeX packages are installed:
 
 ```bash
 tlmgr install titling
 ```
 
+Convert notebook to PDF:
+
 ```python
 pyenv activate psd-paths-3.13 && jupyter nbconvert --execute --to pdf notebook_path.ipynb
 ```
 
-## export python code
+### Export Python code
 
 ```bash
 files-to-prompt . -e py -e toml --cxml -o prompt-context.txt
