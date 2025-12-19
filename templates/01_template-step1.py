@@ -53,7 +53,7 @@ dr.display_all_functions(orient="TB", custom_style_function=style_cfg)
 # %%
 results = dr.execute(
     final_vars=[
-        "raw_potatoed",
+        "raw_dropped",
         "plot_raw_psd",
         "report_with_psd",
         "raw_filtered",
@@ -70,7 +70,7 @@ results = dr.execute(
 # # Plots
 
 # %%
-fig = results["raw_potatoed"].iloc[0].plot(scalings='auto', show=True,  butterfly=True)
+fig = results["raw_dropped"].iloc[0].plot(scalings='auto', show=True,  butterfly=True)
 
 # %%
 standard_scalings = {

@@ -50,21 +50,21 @@ def raw_dropped(raw_loaded: mne.io.Raw, config: dict) -> mne.io.Raw:
     return raw_temp.drop_channels(bad_channels)
 
 
-def raw_potatoed(raw_dropped: mne.io.Raw) -> mne.io.Raw:
-    """Applies POTATO algorithm to raw data"""
-    raw_temp = raw_dropped.copy()
-    raw_potato = apply_potato_to_raw(raw_temp, h_freq=40.0)
-    return raw_potato
+# def raw_potatoed(raw_dropped: mne.io.Raw) -> mne.io.Raw:
+#     """Applies POTATO algorithm to raw data"""
+#     raw_temp = raw_dropped.copy()
+#     raw_potato = apply_potato_to_raw(raw_temp, h_freq=40.0)
+#     return raw_potato
 
 
 def raw_filtered(
-    raw_potatoed: mne.io.Raw, filter_params: dict, fline: list
+    raw_dropped: mne.io.Raw, filter_params: dict, fline: list
 ) -> mne.io.Raw:
     """Applies bandpass filter to raw data"""
-    total_duration = raw_potatoed.times[-1]
+    total_duration = raw_dropped.times[-1]
 
     raw_temp = (
-        raw_potatoed.copy()
+        raw_dropped.copy()
         .resample(250, method="polyphase", verbose=True)
         .notch_filter(freqs=fline, method="fir", picks=["eeg", "ecg"])
         .filter(**filter_params)
@@ -91,8 +91,8 @@ def raw_annotated_pyprep(raw_filtered: mne.io.Raw, paths: ProjectPaths) -> mne.i
 @tag(kind="visualization")
 @parameterize(
     plot_raw_psd={
-        "data_input": source("raw_potatoed"),           # Use source() for Upstream Nodes
-        "stage_name": value("Raw (but potatoed)")       # Use value() for Strings/constants
+        "data_input": source("raw_dropped"),           # Use source() for Upstream Nodes
+        "stage_name": value("Raw")       # Use value() for Strings/constants
     },
     plot_filtered_psd={
         "data_input": source("raw_annotated_pyprep"),  # source() links to the function logic

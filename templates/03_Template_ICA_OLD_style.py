@@ -191,7 +191,7 @@ def compute_ica_limited(eeg_data, variance_threshold=0.99, max_cap=40, random_st
 
 # %%
 
-ica = compute_ica_limited(epochs_good, variance_threshold=0.99, max_cap=50, random_state=97)
+ica = compute_ica_limited(epochs_good, variance_threshold=0.99, max_cap=40, random_state=97)
 print(ica.n_components_)
 ica.save(
     f"{paths.analysis}/sub-{subject_id}_my_ica_model-ica.fif", overwrite=True)
@@ -265,6 +265,9 @@ try:
 except Exception as e:
     # If an exception occurs, print the error message
     print("An error occurred:", e)
+
+# %% [markdown]
+# # ICA components labelling 
 
 # %%
 from mne_icalabel import label_components
@@ -340,59 +343,30 @@ def plot_component_properties(ica, eeg_data, picks, ic_labels=None, report=None,
 
     return figs
 
-
-# %%
-
-def plot_ica_by_label(ica, eeg_data, ic_labels, report=None):
+def get_manual_ica_list(subject_id,  log_path):
     """
-    Plots ICA components grouped by their ICLabel classification.
-    Correctly handles cases where plot_components returns a list of figures.
+    Checks the CSV for manual overrides. 
+    Returns a list of indices if found, else returns an empty list.
     """
-    labels = ic_labels["labels"]
-    probs = ic_labels["y_pred_proba"]
-    
-    titles = {
-        i: f"IC{i}: {label} ({probs[i]*100:.1f}%)" 
-        for i, label in enumerate(labels)
-    }
-
-    # 1. Generate the Topographies
-    # We set show=False to prevent duplicate plots in notebooks
-    figs = ica.plot_components(inst=eeg_data, title="ICA Components by Label", show=False)
-    
-    # Ensure figs is always a list for consistent iteration
-    if not isinstance(figs, list):
-        figs = [figs]
-
-    ic_idx = 0
-    for fig in figs:
-        # Update titles of the individual axes
-        for ax in fig.axes:
-            if ic_idx < len(labels):
-                ax.set_title(titles[ic_idx], fontsize=8)
-                ic_idx += 1
+    if os.path.exists(log_path):
+        df_log = pd.read_csv(log_path)
+        # Match subject_id as a string
+        sub_row = df_log[df_log['subject_id'].astype(str) == str(subject_id)]
         
-        # Display the figure in the notebook
-        display(fig)
-        
-        if report is not None:
-            report.add_figure(fig, title=f"ICA Component Topographies (Page {figs.index(fig)+1})")
+        if not sub_row.empty:
+            manual_val = sub_row.iloc[0]['manual_exclude']
+            
+            # --- ROBUST CHECK FOR NAN AND EMPTY STRINGS ---
+            if pd.isna(manual_val) or str(manual_val).strip().lower() == 'nan' or str(manual_val).strip() == '':
+                return [] # Fall back to automated detection
+            # ----------------------------------------------
 
-    # 2. Plot properties for artifact components (Eye, Muscle, etc.)
-    artifacts = ["eye blink", "muscle artifact", "heart beat", "line noise", "channel noise"]
-    bad_indices = [i for i, l in enumerate(labels) if l in artifacts]
-    
-    if bad_indices:
-        print(f"Found {len(bad_indices)} artifact components. Generating property plots...")
-        # plot_properties always returns a list
-        fig_props = ica.plot_properties(eeg_data, picks=bad_indices, show=False)
-        
-        for idx, fig in zip(bad_indices, fig_props):
-            display(fig) # Show in notebook
-            if report is not None:
-                report.add_figure(fig, title=f"Properties IC {idx}: {titles[idx]}")
+            print(f"✅ Using manual override from CSV for sub-{subject_id}")
+            # Convert "0, 1, 2" string to [0, 1, 2]
+            return [int(x.strip()) for x in str(manual_val).split(',') if x.strip().isdigit()]
+            
+    return []
 
-    return figs
 
 
 # %%
@@ -402,11 +376,30 @@ ic_labels = label_components(clean_raw, ica, method="iclabel")
 # 2. Plot all topographies with their labels
 plot_annotated_topographies(ica, clean_raw, ic_labels, report=report)
 
+# %%
+all_ics = list(range(ica.n_components_))
+# 2. Call your function with the full list
+plot_component_properties(
+    ica, 
+    clean_raw, 
+    picks=all_ics,        # This passes every component index
+    ic_labels=ic_labels, 
+    report=report,
+    save_path=figures_path,
+    subject=subject_id
+)
+
+# %% [markdown]
+# # Select component to removal 
+
+# %%
+
+
 # 3. Identify components to exclude (Manual ECG + Automated Artifacts)
 artifacts = ["eye blink", "muscle artifact", "heart beat", "line noise", "channel noise"]
 bad_indices = [
     i for i, label in enumerate(ic_labels["labels"]) 
-    if label in artifacts and ic_labels["y_pred_proba"][i] > 0.90
+    if label in artifacts and ic_labels["y_pred_proba"][i] > 0.80
 ]
 
 # Merge with your manual ecg_indices from the previous step
@@ -427,52 +420,21 @@ plot_component_properties(
 ica.exclude = final_picks
 
 # %%
-import numpy as np
-from mne_icalabel import label_components
-
-# 1. Perform ICLabel classification
-# We use 'np.errstate' to temporarily ignore the math warnings inside ICLabel
-print("Classifying ICA components...")
-with np.errstate(divide='ignore', invalid='ignore'):
-    ic_labels = label_components(clean_raw, ica, method="iclabel")
-
-# 2. Define the artifact types we want to visualize/exclude
-artifacts = ["eye blink", "muscle artifact", "heart beat", "line noise", "channel noise"]
-
-# 3. Call your custom plotting function
-# This will now use the labels generated above
-figs = plot_ica_by_label(ica, clean_raw, ic_labels)
-
-# 4. Optional: Mark these components as 'bad' in the ICA object
-bad_indices = [i for i, l in enumerate(ic_labels["labels"]) if l in artifacts]
-ica.exclude = bad_indices
-print(f"ICA components excluded: {ica.exclude}")
-
-# Extract probabilities and labels
-probs = ic_labels["y_pred_proba"]
-labels = ic_labels["labels"]
-
-# Only exclude if the label is in our artifact list AND probability > 0.90
-ica.exclude = [
-    i for i, label in enumerate(labels) 
-    if label in artifacts and probs[i] > 0.90
-]
-
-print(f"Components marked for exclusion (>90% confidence): {ica.exclude}")
-if not ica.exclude:
-    print("No components met the 90% confidence threshold for exclusion.")
-
-# 3. Call the plotting function
-# This will still plot all components, but your ica.exclude is now set for processing
-plot_ica_by_label(ica, clean_raw, ic_labels, report=report)
-
-# %%
-# Run this before label_components to check for issues
-locs = np.array([ch['loc'][:3] for ch in clean_raw.info['chs']])
-unique_locs = np.unique(locs, axis=0)
-
-if len(locs) != len(unique_locs):
-    print(f"⚠️ Warning: Found {len(locs) - len(unique_locs)} duplicate channel locations.")
+# --- NEW: Plot Time Series (Sources) ---
+if final_picks:
+    print(f"Plotting time series for components: {final_picks}")
+    # We plot a 20-second window by default to see the artifact patterns clearly
+    fig_sources = ica.plot_sources(
+        clean_raw, 
+        picks=final_picks, 
+        start=0, 
+        stop=20, 
+        show_scrollbars=False,
+        show=True
+    )
+    
+    if report is not None:
+        report.add_figure(fig_sources, title="Excluded Components Time Series (Sources)")
 
 # %%
 import pandas as pd
@@ -481,57 +443,31 @@ import os
 # Define the central log path
 log_path = f"{paths.outputs}/ica_cleaning_master_log.csv"
 
-def get_exclusion_list(subject_id, ic_labels, log_path):
-    # 1. Default: Use ICLabel with 90% threshold
-    probs = ic_labels["y_pred_proba"]
-    labels = ic_labels["labels"]
-    artifacts = ["eye blink", "muscle artifact", "heart beat", "line noise", "channel noise"]
-    
-    auto_exclude = [
-        i for i, label in enumerate(labels) 
-        if label in artifacts and probs[i] > 0.90
-    ]
 
-    # 2. Check if CSV exists and has a manual override for this subject
-    if os.path.exists(log_path):
-        df_log = pd.read_csv(log_path)
-        # Convert subject_id to string to match CSV
-        sub_row = df_log[df_log['subject_id'].astype(str) == str(subject_id)]
-        
-        if not sub_row.empty:
-            # If manual_exclude column is not empty, use it
-            manual = sub_row.iloc[0]['manual_exclude']
-            if pd.notna(manual):
-                # Expecting string like "0, 2, 5" in CSV
-                print(f"✅ Using manual override from CSV for sub-{subject_id}")
-                return [int(x.strip()) for x in str(manual).split(',') if x.strip().isdigit()]
 
-    # 3. Specific hardcoded rule for Subject 170
-    if str(subject_id) == "170":
-        return [0]
+# 2. Check for manual override in the CSV
+manual_picks = get_manual_ica_list(subject_id, log_path)
+print(manual_picks)
 
-    return auto_exclude
+# 3. Final Decision Logic:
+# If manual is non-empty, replace the list; else use the automated list
+if manual_picks:
+    ica.exclude = manual_picks
+    print(f"Final exclusion (Manual): {ica.exclude}")
+else:
+    ica.exclude = final_picks
+    print(f"Final exclusion (Automated): {ica.exclude}")
 
-# --- EXECUTION ---
-
-# A. Perform ICLabel
-# A. Perform ICLabel (Wrapped to ignore the FloatingPointError)
-print("Classifying ICA components...")
-with np.errstate(divide='ignore', invalid='ignore'):
-    ic_labels = label_components(clean_raw, ica, method="iclabel")
-
-# B. Determine final exclusion list
-final_exclude = get_exclusion_list(subject_id, ic_labels, log_path)
-ica.exclude = final_exclude
-
+final_exclude = ica.exclude
 # C. Apply and Save
 epochs_clean = ica.apply(epochs_good.copy(), exclude=ica.exclude)
+
 epochs_clean.save(f"{paths.analysis}/sub-{subject_id}_clean_ica-manual-epo.fif", overwrite=True)
 
 # D. Update the Master CSV Log
 new_entry = {
     "subject_id": str(subject_id), # Force current ID to string
-    "auto_detected": ",".join(map(str, final_exclude)),
+    "auto_detected": ",".join(map(str, final_picks)),
     "manual_exclude": "", 
     "bad_channels": ",".join(clean_raw.info["bads"]),
     "status": "Auto-Cleaned"
@@ -552,6 +488,9 @@ else:
 # Now sort_values will work because all IDs are strings
 df_log.sort_values("subject_id").to_csv(log_path, index=False)
 print(f"📝 Master log updated at: {log_path}")
+
+# %%
+ica.exclude
 
 # %%
 # Add location of bad channels
