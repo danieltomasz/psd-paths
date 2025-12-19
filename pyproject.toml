@@ -1,0 +1,78 @@
+[project]
+name = "psd-paths"
+version = "0.1.0"
+description = "Analysis of EEG PATHS project data"
+readme = "README.md"
+requires-python = ">=3.13.11, <=3.14"
+dependencies = [
+    "mne",
+    "polars",
+    "plotnine",
+    "specparam>=2.0.0rc6",
+    "pyrasa",
+    "openneuro-py",
+    "pandas",
+    "matplotlib",
+    "numpy",
+    "scipy",
+    "ipywidgets",
+    "spectral",
+    "bids>=0.0",
+    "mne-bids>=0.17.0",
+    "toml>=0.10.2",
+    "pyzmq>=27.1.0",
+    "eeglabio",
+    "meegkit",
+    "mne-bids-pipeline",
+    "pyprep",
+    "pyzaplineplus",
+    "autoreject",
+    "gedai",
+    "pyriemann",
+    "mne-icalabel[stubs]",
+    "papermill",
+    "jsonschema-specifications"
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "variable-inspector",
+    "ruff",
+    "jupytext",
+    "ipykernel",
+    "pip",
+    "notebook",
+    "scipy-stubs",
+    "ipympl",
+   "mne[full-pyqt6]",   
+   "sf-hamilton[visualization]",
+   "nbstripout",
+   "pre-commit"
+    
+]
+
+[tool.uv]
+package = false
+link-mode = "copy"
+
+[tool.uv.workspace]
+members = [
+    "src/spectral",
+]
+
+[tool.uv.sources]
+spectral = { workspace = true, editable = true }
+gedai = { git = "https://github.com/neurotuning/gedai" }
+
+[tool.ruff]
+line-length = 88
+target-version = "py313"
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]
+ignore = []
+
+[tool.black]
+line-length = 88
+target-version = ['py313']
