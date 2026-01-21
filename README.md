@@ -41,7 +41,7 @@ brew install uv
 Download the stable release (v0.1.0) from the `release-0.1` branch:
 
 ```bash
-git clone --branch release-0.1 git@github.com:danieltomasz/psd-paths.git
+git clone --branch release-0.1 --depth 1  git@github.com:danieltomasz/psd-paths.git
 cd psd-paths
 uv sync
 uv run python -m ipykernel install --user --name psd-paths-3.13
@@ -68,7 +68,7 @@ uv run python -m ipykernel install --user --name psd-paths-3.13
 2. Clone and setup:
 
     ```bash
-    git clone --branch release-0.1 git@github.com:danieltomasz/psd-paths.git
+    git clone --branch release-0.1 --depth 1  git@github.com:danieltomasz/psd-paths.git
     cd psd-paths
     python3 -m venv .venv
     source .venv/bin/activate
