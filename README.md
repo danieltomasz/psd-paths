@@ -12,35 +12,83 @@ This is an automated EEG analysis pipeline for processing resting-state EEG data
 - **Comprehensive logging** with per-subject and pipeline-level reports
 - **Reproducible workflows** using workspace-based package management
 
-## Installation
+### Prerequisites
+
+- **Python 3.13** (required) - [Download from python.org](https://www.python.org/downloads/)
+- **Git** - to clone the repository
+
+**Environment setup** - choose ONE of these options:
+
+| Option | Tool | Best for |
+|--------|------|----------|
+| A (Recommended) | [uv](https://docs.astral.sh/uv/) | Fast setup, handles Python version automatically |
+| B | Standard venv + pip | If you prefer familiar tools or can't install uv |
+
+## Quick Start
+
+### Option A: Using uv (Recommended)
+
+1. **Install uv** (one-time setup):
+
+```bash
+# macOS
+brew install uv
+# or: curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+1. Clone and setup:
 
 Download the stable release (v0.1.0) from the `release-0.1` branch:
 
 ```bash
-git clone  release-0.1 git@github.com:danieltomasz/psd-paths.git
+git clone --branch release-0.1 git@github.com:danieltomasz/psd-paths.git
 cd psd-paths
+uv sync
+uv run python -m ipykernel install --user --name psd-paths-3.13
 ```
 
-This project uses `uv` for package management. If you have `uv` installed:
+**Suggested:**
 
-```bash
-uv sync              # Install dependencies
-# or
-make sync            # Install with development dependencies
-```
+> [!TIP]
+> If you have `make` installed (common on macOS/Linux), you can use shorthand commands defined in the [Makefile](Makefile):
+>
+> ```bash
+> make sync    # runs uv sync
+> make kernel  # installs the Jupyter kernel
+> ```
 
-then install the kernel with
+### Option B: Using standard venv (no uv)
 
-```bash
-make kernel
-```
+1. Ensure Python 3.13 is installed:
 
-The **uv workspace** has two components:
+    ```bash
+    python3 --version  # Should show 3.13.x
+    ```
+
+2. Clone and setup:
+
+    ```bash
+    git clone --branch release-0.1 git@github.com:danieltomasz/psd-paths.git
+    cd psd-paths
+    python3 -m venv .venv
+    source .venv/bin/activate
+    pip install -e ".[dev]"
+    pip install -e src/spectral
+    python -m ipykernel install --user --name psd-paths-3.13
+    ```
+
+3. Verify Installation
+
+    ```bash
+    python -c "import mne; print('Success!')"
+    ```
+
+## Configuration
+
+The **workspace** has two components:
 
 1. **Root project** (`psd-paths`): Main analysis scripts and pipeline runner
 2. **spectral package** (`src/spectral/`): Reusable EEG processing utilities (editable workspace dependency)
-
-## Configuration
 
 The project uses `settings.toml` for analysis parameters:
 

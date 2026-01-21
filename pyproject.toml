@@ -31,35 +31,25 @@ dependencies = [
     "pyriemann",
     "mne-icalabel[stubs]",
     "papermill",
-    "jsonschema-specifications"
+    "jsonschema-specifications",
+    "sf-hamilton[visualization]",
+    "nbstripout",
+    "pre-commit",
+    "variable-inspector",
+    "ipykernel",
+    "notebook",
+    "ipympl",
 ]
 
 [project.optional-dependencies]
-dev = [
-    "pytest",
-    "variable-inspector",
-    "ruff",
-    "jupytext",
-    "ipykernel",
-    "pip",
-    "notebook",
-    "scipy-stubs",
-    "ipympl",
-   "mne[full-pyqt6]",   
-   "sf-hamilton[visualization]",
-   "nbstripout",
-   "pre-commit"
-    
-]
+dev = ["jupytext", "pip", "scipy-stubs", "mne[full-pyqt6]"]
 
 [tool.uv]
 package = false
 link-mode = "copy"
 
 [tool.uv.workspace]
-members = [
-    "src/spectral",
-]
+members = ["src/spectral"]
 
 [tool.uv.sources]
 spectral = { workspace = true, editable = true }
