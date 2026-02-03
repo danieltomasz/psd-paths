@@ -14,10 +14,10 @@ N_JOBS = 4
 KERNEL_NAME = "psd-paths-3.13"
 
 STEPS_CONFIG = {
-    1: {"template": "/Users/daniel/PhD/Projects/psd-paths/templates/01_template-step1.ipynb", "suffix": "step1-preprocessing"},
-    2: {"template": "/Users/daniel/PhD/Projects/psd-paths/templates/02_Epochs.ipynb", "suffix": "step1b-epochs-psd-analysis"},
-    3: {"template": "/Users/daniel/PhD/Projects/psd-paths/templates/03_ICA.ipynb", "suffix": "step2-psd-analysis"},
-    4: {"template": "/Users/daniel/PhD/Projects/psd-paths/templates/04_Specparam.ipynb", "suffix": "step2-psd-analysis"}
+    1: {"template": "/Users/daniel/PhD/Projects/psd-paths/templates/01_Preprocessing.ipynb", "suffix": "01_Preprocessing"},
+    2: {"template": "/Users/daniel/PhD/Projects/psd-paths/templates/02_Epochs.ipynb", "suffix": "02_Epochs"},
+    3: {"template": "/Users/daniel/PhD/Projects/psd-paths/templates/03_ICA.ipynb", "suffix": "03_ICA"},
+    4: {"template": "/Users/daniel/PhD/Projects/psd-paths/templates/04_Specparam.ipynb", "suffix": "04_Specparam"}
 
 }
 
@@ -240,7 +240,7 @@ if __name__ == "__main__":
     #results = run_pipeline(steps_to_run=[1, 2, 3])
     
     # Example 1: Run only specific subjects (all steps)
-    results = run_pipeline(subjects_to_run=['114', '127', '128'], steps_to_run=[2, 3, 4])
+    results = run_pipeline(subjects_to_run=['101', '114', '127', '128'], steps_to_run=[2, 3, 4])
     
     # Example 2: Run specific subjects with specific steps
     # results = run_pipeline(subjects_to_run=['101', '127'], steps_to_run=[2, 3])
