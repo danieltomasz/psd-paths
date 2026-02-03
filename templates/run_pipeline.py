@@ -16,7 +16,9 @@ KERNEL_NAME = "psd-paths-3.13"
 STEPS_CONFIG = {
     1: {"template": "/Users/daniel/PhD/Projects/psd-paths/templates/01_template-step1.ipynb", "suffix": "step1-preprocessing"},
     2: {"template": "/Users/daniel/PhD/Projects/psd-paths/templates/02_Epochs.ipynb", "suffix": "step1b-epochs-psd-analysis"},
-    3: {"template": "/Users/daniel/PhD/Projects/psd-paths/templates/03_Template_ICA_OLD_style.ipynb", "suffix": "step2-psd-analysis"}
+    3: {"template": "/Users/daniel/PhD/Projects/psd-paths/templates/03_ICA.ipynb", "suffix": "step2-psd-analysis"},
+    4: {"template": "/Users/daniel/PhD/Projects/psd-paths/templates/04_Specparam.ipynb", "suffix": "step2-psd-analysis"}
+
 }
 
 
@@ -143,16 +145,35 @@ def process_subject_pipeline(subject_id: str, steps_to_run: list, log_output: bo
     )
 
 
-def run_pipeline(n_subjects: int = None, steps_to_run: list = None) -> list[SubjectResult]:
-    """Main pipeline runner with deferred log writing."""
-    if steps_to_run is None:
+def run_pipeline(n_subjects: int = None, steps_to_run: list = None, subjects_to_run: list = None, subject_steps_map: dict = None) -> list[SubjectResult]:
+    """Main pipeline runner with deferred log writing.
+    
+    Args:
+        n_subjects: Number of subjects to process (from beginning of sorted list)
+        steps_to_run: List of steps to run for all subjects
+        subjects_to_run: List of specific subject IDs to process (e.g., ['101', '127'])
+        subject_steps_map: Dict mapping subject IDs to their specific steps (e.g., {'101': [1, 2], '127': [3]})
+    """
+    if steps_to_run is None and subject_steps_map is None:
         steps_to_run = sorted(STEPS_CONFIG.keys())
     
     # Discover subjects
     subject_paths = sorted(list(BIDS_ROOT.glob("sub-*")))
-    subjects = [p.name.replace("sub-", "") for p in subject_paths]
-    if n_subjects:
-        subjects = subjects[:n_subjects]
+    all_subjects = [p.name.replace("sub-", "") for p in subject_paths]
+    
+    # Filter subjects based on input parameters
+    if subject_steps_map is not None:
+        # Use subjects from the subject_steps_map
+        subjects = [s for s in subject_steps_map.keys() if s in all_subjects]
+    elif subjects_to_run is not None:
+        # Use the specified subjects list
+        subjects = [s for s in subjects_to_run if s in all_subjects]
+    elif n_subjects:
+        # Use first n_subjects
+        subjects = all_subjects[:n_subjects]
+    else:
+        # Use all subjects
+        subjects = all_subjects
     
     if not subjects:
         print("⚠️ No subjects found!")
@@ -162,20 +183,33 @@ def run_pipeline(n_subjects: int = None, steps_to_run: list = None) -> list[Subj
     log_file = setup_logging()
     start_time = datetime.now()
     
+    # Determine steps for display
+    if subject_steps_map:
+        steps_display = "custom per subject"
+    else:
+        steps_display = str(steps_to_run)
+    
     # Header logs
     header_logs = [
         f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} | INFO    | 🚀 Pipeline Started",
-        f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} | INFO    |    Subjects: {len(subjects)}",
-        f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} | INFO    |    Steps: {steps_to_run}",
+        f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} | INFO    |    Subjects: {len(subjects)} {subjects if len(subjects) <= 10 else '(showing first 10): ' + str(subjects[:10])}",
+        f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} | INFO    |    Steps: {steps_display}",
         f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} | INFO    |    Parallel jobs: {N_JOBS}",
     ]
     for line in header_logs:
         print(line)
 
     # Parallel execution - each worker returns its logs
-    results: list[SubjectResult] = Parallel(n_jobs=N_JOBS)(
-        delayed(process_subject_pipeline)(sub, steps_to_run) for sub in subjects
-    )
+    if subject_steps_map is not None:
+        # Run different steps for different subjects
+        results: list[SubjectResult] = Parallel(n_jobs=N_JOBS)(
+            delayed(process_subject_pipeline)(sub, subject_steps_map.get(sub, steps_to_run or [1, 2, 3])) for sub in subjects
+        )
+    else:
+        # Run same steps for all subjects
+        results: list[SubjectResult] = Parallel(n_jobs=N_JOBS)(
+            delayed(process_subject_pipeline)(sub, steps_to_run) for sub in subjects
+        )
 
     # Compute summary
     duration = datetime.now() - start_time
@@ -202,4 +236,21 @@ def run_pipeline(n_subjects: int = None, steps_to_run: list = None) -> list[Subj
 
 
 if __name__ == "__main__":
-    results = run_pipeline(steps_to_run=[1,2,3])
+    # By default: Run all subjects with all steps
+    #results = run_pipeline(steps_to_run=[1, 2, 3])
+    
+    # Example 1: Run only specific subjects (all steps)
+    results = run_pipeline(subjects_to_run=['114', '127', '128'], steps_to_run=[2, 3, 4])
+    
+    # Example 2: Run specific subjects with specific steps
+    # results = run_pipeline(subjects_to_run=['101', '127'], steps_to_run=[2, 3])
+    
+    # Example 3: Run different steps for different subjects
+    # results = run_pipeline(subject_steps_map={
+    #     '101': [1, 2, 3],
+    #     '127': [2, 3],
+    #     '128': [3],
+    # })
+    
+    # Example 4: Run first N subjects
+    # results = run_pipeline(n_subjects=5, steps_to_run=[1, 2, 3])
