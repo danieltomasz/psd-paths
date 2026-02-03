@@ -39,6 +39,7 @@ dependencies = [
     "ipykernel",
     "notebook",
     "ipympl",
+    "mne-bids"
 ]
 
 [project.optional-dependencies]
