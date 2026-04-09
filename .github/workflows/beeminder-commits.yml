@@ -1,0 +1,41 @@
+# .github/workflows/beeminder-commits.yml
+name: Send commits to Beeminder
+
+on:
+  push:
+
+jobs:
+  beemind:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send commit count to Beeminder
+        env:
+          BEEMINDER_USERNAME: ${{ secrets.BEEMINDER_USERNAME }}
+          BEEMINDER_TOKEN: ${{ secrets.BEEMINDER_TOKEN }}
+          BEEMINDER_GOAL: ${{ secrets.BEEMINDER_GOAL }}
+          COMMIT_COUNT: ${{ github.event.commits && toJson(github.event.commits) }}
+          REPO: ${{ github.repository }}
+          SHA: ${{ github.sha }}
+          REF: ${{ github.ref }}
+        run: |
+          count=$(python - <<'PY'
+          import json, os
+          data = os.environ.get("COMMIT_COUNT", "[]")
+          try:
+              commits = json.loads(data)
+              print(len(commits))
+          except Exception:
+              print(0)
+          PY
+          )
+
+          if [ "$count" -eq 0 ]; then
+            echo "No commits to send"
+            exit 0
+          fi
+
+          curl -sS -X POST "https://www.beeminder.com/api/v1/users/${BEEMINDER_USERNAME}/goals/${BEEMINDER_GOAL}/datapoints.json" \
+            -d "auth_token=${BEEMINDER_TOKEN}" \
+            -d "value=${count}" \
+            -d "comment=${REPO} ${REF} ${SHA}" \
+            -d "requestid=${REPO}-${SHA}"
