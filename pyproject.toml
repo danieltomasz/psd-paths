@@ -3,7 +3,7 @@ name = "psd-paths"
 version = "0.1.0"
 description = "Analysis of EEG PATHS project data"
 readme = "README.md"
-requires-python = ">=3.13.11, <=3.14"
+requires-python = ">=3.13.15"
 dependencies = [
     "mne",
     "polars",
@@ -16,7 +16,7 @@ dependencies = [
     "numpy",
     "scipy",
     "ipywidgets",
-    "spectral",
+    "eeg-spectral",
     "bids>=0.0",
     "mne-bids>=0.17.0",
     "toml>=0.10.2",
@@ -49,11 +49,10 @@ dev = ["jupytext", "pip", "scipy-stubs", "mne[full-pyqt6]"]
 package = false
 link-mode = "copy"
 
-[tool.uv.workspace]
-members = ["src/spectral"]
+
 
 [tool.uv.sources]
-spectral = { workspace = true, editable = true }
+eeg-spectral = { path = "src/eeg-spectral", editable = true }
 gedai = { git = "https://github.com/neurotuning/gedai" }
 
 [tool.ruff]

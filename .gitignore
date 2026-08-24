@@ -45,3 +45,5 @@ outputs_archive/
 .idea/
 .vscode/
 .virtual_documents/
+eeg-spectral/
+src/eeg-spectral/
