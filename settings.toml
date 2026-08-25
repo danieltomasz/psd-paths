@@ -22,10 +22,12 @@ keep_all_epochs = ["114", "127", "128"]
 [experiment]
 # Add any experiment-specific settings here
 task = "rest" # or whatever your task is
+session = "01"      # BIDS ses-XX level; all 38 subjects use ses-01
 
 
 
 [preprocessing]
+montage = "GSN-HydroCel-256"   # required by pyprep RANSAC (needs channel positions)
 channels_to_remove = [
     "E67",
     "E73",

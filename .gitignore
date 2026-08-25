@@ -47,3 +47,7 @@ outputs_archive/
 .virtual_documents/
 eeg-spectral/
 src/eeg-spectral/
+# throwaway pipeline re-run sandbox
+_rerun_czref/
+.quarto/
+_test_december/
