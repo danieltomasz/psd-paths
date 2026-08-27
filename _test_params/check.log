@@ -1,0 +1,53 @@
+Created directories for sub-105
+Project root: /Users/daniel/PhD/Projects/psd-paths/_test_params
+Loading BrainVision data from: sub-105_ses-01_task-RESTING_eeg.vhdr
+Extracting parameters from /Users/daniel/PhD/Projects/psd-paths/_test_params/data/bids/sub-105/ses-01/eeg/sub-105_ses-01_task-RESTING_eeg.vhdr...
+Setting channel info structure...
+Reading 0 ... 307976  =      0.000 ...   307.976 secs...
+Loaded 258 channels, 308.0 seconds of data
+Identified ECG channels: ['ECG']
+Removed 'VREF' channel.
+Applying GSN-HydroCel-256 montage...
+Polyphase resampling neighborhood: ±2 input samples
+Filtering raw data in 1 contiguous segment
+Setting up band-stop filter
+
+FIR filter parameters
+---------------------
+Designing a one-pass, zero-phase, non-causal bandstop filter:
+- Windowed time-domain design (firwin) method
+- Hamming window with 0.0194 passband ripple and 53 dB stopband attenuation
+- Lower transition bandwidth: 0.50 Hz
+- Upper transition bandwidth: 0.50 Hz
+- Filter length: 1651 samples (6.604 s)
+
+Filtering raw data in 1 contiguous segment
+Setting up band-pass filter from 1 - 40 Hz
+
+FIR filter parameters
+---------------------
+Designing a one-pass, zero-phase, non-causal bandpass filter:
+- Windowed time-domain design (firwin) method
+- Hamming window with 0.0194 passband ripple and 53 dB stopband attenuation
+- Lower passband edge: 1.00
+- Lower transition bandwidth: 1.00 Hz (-6 dB cutoff frequency: 0.50 Hz)
+- Upper passband edge: 40.00 Hz
+- Upper transition bandwidth: 10.00 Hz (-6 dB cutoff frequency: 45.00 Hz)
+- Filter length: 825 samples (3.300 s)
+
+Setting up high-pass filter at 1 Hz
+
+FIR filter parameters
+---------------------
+Designing a one-pass, zero-phase, non-causal highpass filter:
+- Windowed time-domain design (firwin) method
+- Hamming window with 0.0194 passband ripple and 53 dB stopband attenuation
+- Lower passband edge: 1.00
+- Lower transition bandwidth: 1.00 Hz (-6 dB cutoff frequency: 0.50 Hz)
+- Filter length: 413 samples (3.304 s)
+
+Writing /Users/daniel/PhD/Projects/psd-paths/_test_params/data/derrivatives/sub-105/preprocessed/sub-105_annotated_filtered_raw.fif
+Closing /Users/daniel/PhD/Projects/psd-paths/_test_params/data/derrivatives/sub-105/preprocessed/sub-105_annotated_filtered_raw.fif
+[done]
+It appears no Pandas index type was detected (ignore this warning if you're using DASK for now.) Please check whether the dataframe created matches what what you expect to happen.
+DONE
