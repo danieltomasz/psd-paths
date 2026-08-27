@@ -5,11 +5,35 @@ bids_root = "data/bids"  # Relative to project_root
 
 path_raw_bids = "/Users/daniel/PhD/Projects/psd-path/data/bids/"
 
+# Where analysis output goes. Sits next to bids/ inside data/ by default.
+# To test a pipeline variant side by side, change ONLY this line, e.g.
+#   derivatives_root = "data/derrivatives_avgref"
+# every stage below follows automatically, and the existing run is untouched.
+derivatives_root = "data/derrivatives"
+outputs_root     = "outputs"
+
+# Derivative layout. Templates may use {derivatives}, {outputs} and {subject}
+# ({subject} expands to e.g. "sub-105").
+# Stage-first (stage/subject) groups every subject of one stage together, so a
+# single stage folder can be handed to a collaborator on its own.
+# Omit a key to keep its default (subject-first: {derivatives}/{subject}/<stage>).
+[paths.stages]
+preprocessed = "{derivatives}/processed/{subject}"
+epochs       = "{derivatives}/epochs/{subject}"
+analysis     = "{derivatives}/analysis/{subject}"
+ica          = "{derivatives}/ica/{subject}"
+figures      = "{outputs}/figures/{subject}"
+reports      = "{outputs}/reports/{subject}"
+specparam    = "{outputs}/specparam/{subject}"
+
 [pipeline]
-# Paths for pipeline runner (all relative to project_root)
-output_root = "outputs/pipeline"
-output_log = "outputs/log"
-status_file = "outputs/pipeline_status.json"
+# Runner bookkeeping: executed notebooks, run logs, per-step status.
+# NOT the analysis data -- that is [paths.stages] above.
+# {outputs} follows outputs_root, so changing that one line moves these too.
+output_root = "{outputs}/pipeline"
+output_log =  "{outputs}/log"
+status_file = "{outputs}/pipeline_status.json"
+
 # Parallelism and Jupyter kernel
 n_jobs = 4
 kernel_name = "psd-paths-3.13"
