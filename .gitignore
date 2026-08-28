@@ -51,3 +51,8 @@ src/eeg-spectral/
 _rerun_czref/
 .quarto/
 _test_december/
+_test/
+_test_*/
+_test_params/
+_test_runner/
+_test_split/

@@ -35,13 +35,8 @@ output_log =  "{outputs}/log"
 status_file = "{outputs}/pipeline_status.json"
 
 # Parallelism and Jupyter kernel
-n_jobs = 4
+n_jobs = 8
 kernel_name = "psd-paths-3.13"
-
-[subjects]
-# Subjects that should keep ALL epochs regardless of artifact contamination
-# (moved here from hardcoded list in 02_Epochs.ipynb)
-keep_all_epochs = ["114", "127", "128"]
 
 [experiment]
 # Add any experiment-specific settings here
@@ -51,7 +46,21 @@ session = "01"      # BIDS ses-XX level; all 38 subjects use ses-01
 
 
 [preprocessing]
-montage = "GSN-HydroCel-256"   # required by pyprep RANSAC (needs channel positions)
+montage = "GSN-HydroCel-256"
+
+# Bad-channel detection. pyprep/RANSAC predicts each channel from its spatial
+# neighbours, so a contiguous patch of failed electrodes predicts itself and is
+# missed (this is why sub-109's E221-E223 cluster went undetected). LOF scores
+# channels in activity space instead and has no such blind spot.
+# Kumaravel et al. 2022, Sensors 22:7314, doi:10.3390/s22197314
+use_lof         = true
+lof_n_neighbors = 20
+# Conservative. MNE default is 1.5, which flags a median of 11 extra channels
+# per subject here (max 47) -- far too aggressive. At 4.0 the median is +1
+# (20/38 subjects affected, max +7), while the sub-109 cluster that motivated
+# this scores 10-26 and is still caught with a wide margin.
+lof_threshold   = 4.0
+flat_uv         = 1.0    # channels below this std are flat (LOF cannot see them)   # required by pyprep RANSAC (needs channel positions)
 channels_to_remove = [
     "E67",
     "E73",
@@ -109,21 +118,26 @@ channels_to_remove = [
 
 
 [cleaning]
-# "epochs identified as bad on more than 40% bad channels were discarded"
-bad_epoch_channel_threshold = 0.40 
-bad_epoch_threshold = 0.40    # "More than 40% bad channels"
-
-ica_n_components = 0.99
-ica_method = "picard"
-# "fit_params=dict(ortho=False, extended=True)"
-ica_fit_params = { ortho = false, extended = true }
-
-# Append this to your existing settings.toml
+# ICA. These are the values compute_ica_limited() is actually called with.
+ica_variance_threshold = 0.99   # keep components explaining this much variance
+ica_max_components     = 40     # hard cap regardless of variance
+ica_random_state       = 97
+# method and fit_params are fixed inside compute_ica_limited():
+#   method="picard", fit_params=dict(ortho=False, extended=True)
 
 [epochs]
-# Epoching parameters
-epoch_length = 5.0
-epoch_overlap = 3.0           # Explicitly 3.0s overlap duration (matches methodology)
+# Epoching. NOTE: overlap is 1.5 s -- this file previously claimed 3.0 s, which
+# never matched the code. Every existing derivative was made with 1.5 s.
+epoch_length  = 5.0
+epoch_overlap = 1.5
 
-# Rejection parameters
+# Epoch rejection (autoreject)
+autoreject_resample      = 125
+autoreject_n_interpolate = [1]
+autoreject_consensus     = [0.40]
+bad_channel_epoch_threshold = 0.40   # flag a channel bad if bad in >40% of epochs
 
+# Deterministic fallback, used only when autoreject's threshold search
+# degenerates (see get_reject_log's sanity check).
+fallback_ptp_uv       = 150.0
+fallback_max_bad_frac = 0.25
