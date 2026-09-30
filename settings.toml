@@ -125,6 +125,26 @@ ica_random_state       = 97
 # method and fit_params are fixed inside compute_ica_limited():
 #   method="picard", fit_params=dict(ortho=False, extended=True)
 
+# find_bads_ecg() correlates components against the ECG channel and returns hits
+# regardless of what they are. Merged unfiltered it removed components ICLabel
+# called brain (sub-107 lost 25% of its alpha to two, one at p=0.92). Drop any
+# ECG hit whose ICLabel class is in this list.
+ecg_reject_labels = ["brain"]
+
+# ICLabel confidence needed before a component is removed, per class.
+# A flat 0.80 left blink components in for 6 of 20 subjects -- sub-109 kept two
+# eye components (p=0.74, p=0.54) holding 58% of its variance and removed 1.5%
+# of its delta power. Blink topographies are unmistakable and ICLabel is
+# reliable on them well below 0.80, so eye blink gets a lower bar; the other
+# classes overlap with real brain activity and keep the conservative one.
+[cleaning.ica_label_thresholds]
+"eye blink"       = 0.50
+"muscle artifact" = 0.80
+"heart beat"      = 0.80
+"line noise"      = 0.80
+"channel noise"   = 0.80
+
+
 [epochs]
 # Epoching. NOTE: overlap is 1.5 s -- this file previously claimed 3.0 s, which
 # never matched the code. Every existing derivative was made with 1.5 s.
@@ -141,3 +161,16 @@ bad_channel_epoch_threshold = 0.40   # flag a channel bad if bad in >40% of epoc
 # degenerates (see get_reject_log's sanity check).
 fallback_ptp_uv       = 150.0
 fallback_max_bad_frac = 0.25
+
+[interpolate]
+# Step 5 runs autoreject a SECOND time, on the ICA-cleaned epochs, with its own
+# settings -- these were hardcoded in 05_Interpolate.ipynb and are written out
+# here unchanged. They are deliberately not the [epochs] values above: that pass
+# selects epochs to fit the ICA on, this one cleans what survives it.
+autoreject_n_interpolate = [1, 2, 4, 8, 32, 64]
+autoreject_thresh_method = "bayesian_optimization"
+autoreject_random_state  = 100
+# Guard: on sub-114 this pass dropped all 173 epochs and the notebook then died
+# on an empty object. Below this many surviving epochs, keep the uncleaned
+# epochs instead of losing the subject, and say so in the report.
+min_epochs_after_ar = 10

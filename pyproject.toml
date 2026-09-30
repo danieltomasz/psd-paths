@@ -52,7 +52,7 @@ link-mode = "copy"
 
 
 [tool.uv.sources]
-eeg-spectral = { path = "src/eeg-spectral", editable = true }
+eeg-spectral = { path = "../ds004504/eeg-spectral", editable = true }
 gedai = { git = "https://github.com/neurotuning/gedai" }
 
 [tool.ruff]
