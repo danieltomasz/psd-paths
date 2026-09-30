@@ -34,7 +34,6 @@ dependencies = [
     "jsonschema-specifications",
     "sf-hamilton[visualization]",
     "nbstripout",
-    "pre-commit",
     "variable-inspector",
     "ipykernel",
     "notebook",
@@ -52,7 +51,7 @@ link-mode = "copy"
 
 
 [tool.uv.sources]
-eeg-spectral = { path = "../ds004504/eeg-spectral", editable = true }
+eeg-spectral = { git = "https://github.com/danieltomasz/eeg-spectral", tag = "v0.2.1" }
 gedai = { git = "https://github.com/neurotuning/gedai" }
 
 [tool.ruff]

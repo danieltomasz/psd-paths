@@ -6,8 +6,20 @@ VENV=${PROJECT}-${VERSION}
 
 
 sync:
-	@echo "Syncing source code to uv workspace"
-	uv sync --upgrade --all-extras
+	@echo "Installing the exact versions pinned in uv.lock"
+	uv sync --locked --all-extras
+
+# After editing pyproject.toml (e.g. a new eeg-spectral tag): re-lock only what
+# changed, keep every other pin, then install.
+update:
+	uv lock
+	uv sync --locked --all-extras
+
+# Move every package to its newest allowed version. Results can change: rerun
+# the pipeline afterwards.
+upgrade:
+	uv lock --upgrade
+	uv sync --locked --all-extras
 
 
 test:

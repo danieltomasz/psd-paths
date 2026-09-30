@@ -40,7 +40,7 @@ kernel_name = "psd-paths-3.13"
 
 [experiment]
 # Add any experiment-specific settings here
-task = "rest" # or whatever your task is
+task = "RESTING"   # BIDS task label, must match the file names (sub-XXX_ses-01_task-RESTING_eeg)
 session = "01"      # BIDS ses-XX level; all 38 subjects use ses-01
 
 
