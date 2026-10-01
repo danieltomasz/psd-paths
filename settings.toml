@@ -5,12 +5,13 @@ bids_root = "data/bids"  # Relative to project_root
 
 path_raw_bids = "/Users/daniel/PhD/Projects/psd-path/data/bids/"
 
-# Where analysis output goes. Sits next to bids/ inside data/ by default.
-# To test a pipeline variant side by side, change ONLY this line, e.g.
-#   derivatives_root = "data/derrivatives_avgref"
-# every stage below follows automatically, and the existing run is untouched.
-derivatives_root = "data/derrivatives"
-outputs_root     = "outputs"
+# One folder per run: processed data and outputs of the same run live together,
+# so a run can be archived, shared or deleted as a unit. For a new run or a
+# variant, change the folder name in BOTH lines (e.g. runs/v0.3/...); every
+# stage below follows, and earlier runs stay untouched.
+# Old results from before v0.2 are in data/derrivatives and outputs/.
+derivatives_root = "runs/v0.2.1/derivatives"
+outputs_root     = "runs/v0.2.1/outputs"
 
 # Derivative layout. Templates may use {derivatives}, {outputs} and {subject}
 # ({subject} expands to e.g. "sub-105").

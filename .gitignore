@@ -1,4 +1,5 @@
 data/
+runs/
 *.pyc
 *.pyo
 .python-version

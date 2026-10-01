@@ -5,7 +5,7 @@ Usage:
     python templates/generate_dashboard.py
 
 Output:
-    outputs/dashboard.html  — open this file in any web browser.
+    <outputs_root>/dashboard.html  — open this file in any web browser.
 
 The dashboard shows, for each subject:
   - Which pipeline steps completed / failed / not yet run
@@ -14,7 +14,6 @@ The dashboard shows, for each subject:
 """
 import json
 import csv
-import sys
 from pathlib import Path
 from datetime import datetime
 
@@ -22,17 +21,18 @@ from datetime import datetime
 # Locate project
 # ---------------------------------------------------------------------------
 _HERE = Path(__file__).parent
-sys.path.insert(0, str(_HERE.parent / "src" / "spectral"))
+from spectral.runner import PipelineConfig
 from spectral.utils import load_config, find_project_root
 
 PROJECT_ROOT = find_project_root(_HERE)
 cfg = load_config(PROJECT_ROOT / "settings.toml")
-_pipe = cfg.get("pipeline", {})
+# Same path resolution as the runner, so {outputs} placeholders expand.
+_run = PipelineConfig.from_settings(config_path=PROJECT_ROOT / "settings.toml")
 
-BIDS_ROOT    = PROJECT_ROOT / cfg["paths"].get("bids_root", "data/bids")
-OUTPUT_ROOT  = PROJECT_ROOT / _pipe.get("output_root",  "outputs/pipeline")
-STATUS_FILE  = PROJECT_ROOT / _pipe.get("status_file",  "outputs/pipeline_status.json")
-OUTPUTS_DIR  = PROJECT_ROOT / "outputs"
+BIDS_ROOT    = _run.bids_root
+OUTPUT_ROOT  = _run.output_root
+STATUS_FILE  = _run.status_file
+OUTPUTS_DIR  = PROJECT_ROOT / cfg["paths"].get("outputs_root", "outputs")
 DASHBOARD    = OUTPUTS_DIR / "dashboard.html"
 
 STEP_NAMES = {1: "Preprocessing", 2: "Epochs", 3: "ICA", 4: "Specparam"}
