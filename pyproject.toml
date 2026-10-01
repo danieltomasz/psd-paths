@@ -32,7 +32,6 @@ dependencies = [
     "mne-icalabel[stubs]",
     "papermill",
     "jsonschema-specifications",
-    "sf-hamilton[visualization]",
     "nbstripout",
     "variable-inspector",
     "ipykernel",

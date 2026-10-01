@@ -12,13 +12,58 @@ Each run writes its processed data and outputs to its own folder under
 
 | Folder | Date | Tag | eeg-spectral | Python | Outcome |
 | --- | --- | --- | --- | --- | --- |
-| `runs/v0.2.1` | 2026-10-01 | v0.2.1 | 0.2.1 (5 subjects: 0.2.2) | 3.13.15 (5 subjects: 3.14.7) | 38/38 subjects complete. The 5 subjects with a recording pause were rerun with the pause fix and copied in, see `runs/v0.2.1/PATCHES.md`. The original files are in `_superseded/`. |
-| `data/derrivatives`, `outputs/` | Aug 2026 | before v0.2.0 | local checkout | 3.13 | Made before the epoch fixes in eeg-spectral 0.2.0. Not used any more. |
+| `runs/v0.2.3` | 2026-10-01 | v0.2.3 | 0.2.3 | 3.14.7 | 38/38 subjects, all 5 steps complete (190/190), 18 min. First run with the five-step pipeline and the recording-pause fix for all subjects. |
+| `runs/v0.2.1` | 2026-10-01 | v0.2.1 | 0.2.1 (5 subjects: 0.2.2) | 3.13.15 (5 subjects: 3.14.7) | 38/38 subjects complete, 5 of them patched with the pause fix. The folder is no longer on disk. |
+| `runs/v.0.1` | Aug 2026 | before v0.2.0 | local checkout | 3.13 | Made before the epoch fixes in eeg-spectral 0.2.0 (previously `data/derrivatives` and `outputs/`). Not used any more. |
 
 If a run was patched instead of rerun, its folder contains a `PATCHES.md`.
-`_test/`, `_rerun_czref/` and `runs/_check/` are test runs and can be deleted.
+`_test/`, `_rerun_czref/` and `runs/_check*/` are test runs and can be deleted.
 
-## Unreleased (0.2.2)
+## Unreleased
+
+### Changed
+
+- Step 01 no longer uses Hamilton. The notebook calls the preprocessing
+  functions from eeg-spectral (`spectral.flows.preprocessing`) one after the
+  other: load, drop channels, resample/notch/filter/crop, detect bad channels,
+  mark them, average reference, save, then the report and plots. The functions
+  themselves are unchanged. Checked on sub-101, 109, 114 and 145 against
+  `runs/v0.2.3`: identical step 01 data, bad channels and annotations, identical
+  final epochs and specparam output. `sf-hamilton` is no longer a direct
+  dependency of the project (eeg-spectral still uses it).
+- Group step: `templates/SpecparamTogether.ipynb` (moved from `notebooks/`)
+  collects the specparam results of all subjects of a run and writes
+  `all_subjects_specparam.csv`, `unique_specparam_results.csv` (one row per
+  channel) and `participant_exclusion_report.csv` to `<outputs_root>/group/`.
+  It runs once at the end of `run_pipeline.py`, with `make group`, or on its
+  own; it reads the run folder from `settings.toml` instead of a fixed path and
+  only reads `*-specparam.csv` files. The exclusion rule is unchanged (fewer
+  than 50% of channels with R^2 >= 0.9 means Exclude) and is now set in
+  `[group]` in `settings.toml`. In the report, the columns from the specparam
+  fits are prefixed `specparam_` (`specparam_n_channels`,
+  `specparam_good_fit_share`, `specparam_status`; the old names were
+  `total_channels`, `ratio_good_channels`, `status`), followed by the step 04
+  preprocessing counts (interpolated channels, ICA components, epochs). The
+  report also lists subjects without results and failed steps. Both channel
+  tables have an `interpolated` column (True for channels marked bad and
+  interpolated in step 04), taken from each subject's step 04 record and checked
+  against its count (`runs/v0.2.3`: 420 channels in 38 subjects).
+  For `runs/v0.2.3`: 38 subjects, sub-106 and sub-129 marked Exclude.
+- `make` on its own lists the commands; `make run` runs the whole pipeline
+  (all subjects, then the group step). Removed `make test`, which pointed to a
+  `tests/` folder that does not exist.
+- README rewritten for the current pipeline: setup, which command to use when,
+  the five steps and the group step with their outputs, the run folder layout,
+  manual ICA review, and how to reproduce a run.
+- The earlier group tables in `notebooks/` are from the December 2025 run
+  (tag v0.1.0): 36 subjects (sub-114 and sub-127 missing), made before all
+  later fixes. sub-128 was excluded there because of its recording pause.
+- Noted during that check: the ICA weights of one subject (sub-101) differed
+  from `runs/v0.2.3` in the 7th significant digit, so its ICA fingerprint
+  changed; the removed components and the final data were the same. This comes
+  from multithreaded computation in the ICA fit, not from the step 01 change.
+
+## 0.2.3 - 2026-10-01
 
 ### Data issues
 

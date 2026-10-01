@@ -178,3 +178,10 @@ autoreject_random_state  = 100
 # pass and notes it in the report. Added after this pass rejected all epochs of
 # sub-114 (caused by a recording pause, see CHANGELOG.md).
 min_epochs_after_ar = 10
+
+[group]
+# Group tables (templates/SpecparamTogether.ipynb, run once after all subjects).
+# A subject is marked "Exclude" if fewer than min_good_channel_fraction of its
+# channels have a specparam fit with R^2 of at least min_r_squared.
+min_r_squared             = 0.9
+min_good_channel_fraction = 0.5
