@@ -5,13 +5,12 @@ bids_root = "data/bids"  # Relative to project_root
 
 path_raw_bids = "/Users/daniel/PhD/Projects/psd-path/data/bids/"
 
-# One folder per run: processed data and outputs of the same run live together,
-# so a run can be archived, shared or deleted as a unit. For a new run or a
-# variant, change the folder name in BOTH lines (e.g. runs/v0.3/...); every
-# stage below follows, and earlier runs stay untouched.
-# Old results from before v0.2 are in data/derrivatives and outputs/.
-derivatives_root = "runs/v0.2.1/derivatives"
-outputs_root     = "runs/v0.2.1/outputs"
+# Each run has its own folder with its processed data and outputs, so it can
+# be archived, shared or deleted in one piece. For a new run, change the folder
+# name in both lines (e.g. runs/v0.3/...). Earlier runs are not touched.
+# Results from before v0.2 are in data/derrivatives and outputs/.
+derivatives_root = "runs/v0.2.3/derivatives"
+outputs_root     = "runs/v0.2.3/outputs"
 
 # Derivative layout. Templates may use {derivatives}, {outputs} and {subject}
 # ({subject} expands to e.g. "sub-105").
@@ -28,9 +27,9 @@ reports      = "{outputs}/reports/{subject}"
 specparam    = "{outputs}/specparam/{subject}"
 
 [pipeline]
-# Runner bookkeeping: executed notebooks, run logs, per-step status.
-# NOT the analysis data -- that is [paths.stages] above.
-# {outputs} follows outputs_root, so changing that one line moves these too.
+# Files written by the runner: executed notebooks, run logs, step status.
+# The analysis data itself is in [paths.stages] above.
+# {outputs} is outputs_root, so these move with it.
 output_root = "{outputs}/pipeline"
 output_log =  "{outputs}/log"
 status_file = "{outputs}/pipeline_status.json"
@@ -49,19 +48,18 @@ session = "01"      # BIDS ses-XX level; all 38 subjects use ses-01
 [preprocessing]
 montage = "GSN-HydroCel-256"
 
-# Bad-channel detection. pyprep/RANSAC predicts each channel from its spatial
-# neighbours, so a contiguous patch of failed electrodes predicts itself and is
-# missed (this is why sub-109's E221-E223 cluster went undetected). LOF scores
-# channels in activity space instead and has no such blind spot.
+# Bad-channel detection. RANSAC (pyprep) predicts each channel from its
+# neighbours, so a cluster of neighbouring bad electrodes can be missed; this is
+# how the E221-E223 cluster in sub-109 went undetected. LOF compares channels by
+# their activity and does not have this problem.
 # Kumaravel et al. 2022, Sensors 22:7314, doi:10.3390/s22197314
 use_lof         = true
 lof_n_neighbors = 20
-# Conservative. MNE default is 1.5, which flags a median of 11 extra channels
-# per subject here (max 47) -- far too aggressive. At 4.0 the median is +1
-# (20/38 subjects affected, max +7), while the sub-109 cluster that motivated
-# this scores 10-26 and is still caught with a wide margin.
+# The MNE default of 1.5 flags a median of 11 extra channels per subject here
+# (max 47), too many. At 4.0 the median is 1 extra channel (20 of 38 subjects
+# affected, max 7), and the sub-109 cluster (scores 10-26) is still detected.
 lof_threshold   = 4.0
-flat_uv         = 1.0    # channels below this std are flat (LOF cannot see them)   # required by pyprep RANSAC (needs channel positions)
+flat_uv         = 1.0    # channels with a lower std (uV) are flat; LOF does not detect these
 channels_to_remove = [
     "E67",
     "E73",
@@ -119,25 +117,30 @@ channels_to_remove = [
 
 
 [cleaning]
-# ICA. These are the values compute_ica_limited() is actually called with.
+# ICA, as passed to compute_ica_limited().
 ica_variance_threshold = 0.99   # keep components explaining this much variance
-ica_max_components     = 40     # hard cap regardless of variance
+ica_max_components     = 40     # maximum number of components
 ica_random_state       = 97
-# method and fit_params are fixed inside compute_ica_limited():
+# Method and fit parameters are set inside compute_ica_limited():
 #   method="picard", fit_params=dict(ortho=False, extended=True)
 
-# find_bads_ecg() correlates components against the ECG channel and returns hits
-# regardless of what they are. Merged unfiltered it removed components ICLabel
-# called brain (sub-107 lost 25% of its alpha to two, one at p=0.92). Drop any
-# ECG hit whose ICLabel class is in this list.
+# 04: a manual ICA selection made on an earlier fit is used only if each
+# selected component matches a component of the new fit with at least this
+# topography correlation.
+ica_corr_threshold     = 0.95
+
+# find_bads_ecg() returns every component that correlates with the ECG channel,
+# including brain components (sub-107 lost 25% of its alpha power to two of
+# them, one with brain p=0.92). ECG hits with an ICLabel class in this list are
+# not removed.
 ecg_reject_labels = ["brain"]
 
-# ICLabel confidence needed before a component is removed, per class.
-# A flat 0.80 left blink components in for 6 of 20 subjects -- sub-109 kept two
-# eye components (p=0.74, p=0.54) holding 58% of its variance and removed 1.5%
-# of its delta power. Blink topographies are unmistakable and ICLabel is
-# reliable on them well below 0.80, so eye blink gets a lower bar; the other
-# classes overlap with real brain activity and keep the conservative one.
+# ICLabel probability needed to remove a component, per class.
+# With 0.80 for all classes, blink components stayed in for 6 of 20 subjects;
+# sub-109 kept two eye components (p=0.74 and p=0.54) with 58% of its variance,
+# and cleaning removed only 1.5% of its delta power. ICLabel classifies blinks reliably
+# below 0.80, so eye blink has a lower threshold. The other classes overlap more
+# with brain activity and keep 0.80.
 [cleaning.ica_label_thresholds]
 "eye blink"       = 0.50
 "muscle artifact" = 0.80
@@ -147,8 +150,8 @@ ecg_reject_labels = ["brain"]
 
 
 [epochs]
-# Epoching. NOTE: overlap is 1.5 s -- this file previously claimed 3.0 s, which
-# never matched the code. Every existing derivative was made with 1.5 s.
+# Epoching. The overlap is 1.5 s. This file used to say 3.0 s, which never
+# matched the code; all results were made with 1.5 s.
 epoch_length  = 5.0
 epoch_overlap = 1.5
 
@@ -158,20 +161,20 @@ autoreject_n_interpolate = [1]
 autoreject_consensus     = [0.40]
 bad_channel_epoch_threshold = 0.40   # flag a channel bad if bad in >40% of epochs
 
-# Deterministic fallback, used only when autoreject's threshold search
-# degenerates (see get_reject_log's sanity check).
+# Fixed peak-to-peak rejection, used only when autoreject's threshold search
+# fails (see the check in get_reject_log).
 fallback_ptp_uv       = 150.0
 fallback_max_bad_frac = 0.25
 
 [interpolate]
-# Step 5 runs autoreject a SECOND time, on the ICA-cleaned epochs, with its own
-# settings -- these were hardcoded in 05_Interpolate.ipynb and are written out
-# here unchanged. They are deliberately not the [epochs] values above: that pass
-# selects epochs to fit the ICA on, this one cleans what survives it.
+# Step 04 (04_ICA_apply_interpolate) runs autoreject a second time, on the
+# ICA-cleaned epochs, with its own settings (previously hardcoded in the
+# notebook, values unchanged). They differ from [epochs]: that pass selects the
+# epochs for the ICA fit, this one cleans the epochs after ICA.
 autoreject_n_interpolate = [1, 2, 4, 8, 32, 64]
 autoreject_thresh_method = "bayesian_optimization"
 autoreject_random_state  = 100
-# Guard: on sub-114 this pass dropped all 173 epochs and the notebook then died
-# on an empty object. Below this many surviving epochs, keep the uncleaned
-# epochs instead of losing the subject, and say so in the report.
+# If fewer epochs than this are left, step 04 keeps the epochs from before this
+# pass and notes it in the report. Added after this pass rejected all epochs of
+# sub-114 (caused by a recording pause, see CHANGELOG.md).
 min_epochs_after_ar = 10

@@ -21,13 +21,14 @@ from datetime import datetime
 # Locate project
 # ---------------------------------------------------------------------------
 _HERE = Path(__file__).parent
+from run_pipeline import STEPS
 from spectral.runner import PipelineConfig
 from spectral.utils import load_config, find_project_root
 
 PROJECT_ROOT = find_project_root(_HERE)
 cfg = load_config(PROJECT_ROOT / "settings.toml")
-# Same path resolution as the runner, so {outputs} placeholders expand.
-_run = PipelineConfig.from_settings(config_path=PROJECT_ROOT / "settings.toml")
+# Same paths and steps as the runner.
+_run = PipelineConfig.from_settings(config_path=PROJECT_ROOT / "settings.toml", steps=STEPS)
 
 BIDS_ROOT    = _run.bids_root
 OUTPUT_ROOT  = _run.output_root
@@ -35,7 +36,7 @@ STATUS_FILE  = _run.status_file
 OUTPUTS_DIR  = PROJECT_ROOT / cfg["paths"].get("outputs_root", "outputs")
 DASHBOARD    = OUTPUTS_DIR / "dashboard.html"
 
-STEP_NAMES = {1: "Preprocessing", 2: "Epochs", 3: "ICA", 4: "Specparam"}
+STEP_NAMES = {num: step.name for num, step in _run.steps.items()}
 
 
 # ---------------------------------------------------------------------------

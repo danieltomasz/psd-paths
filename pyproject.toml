@@ -51,7 +51,7 @@ link-mode = "copy"
 
 
 [tool.uv.sources]
-eeg-spectral = { git = "https://github.com/danieltomasz/eeg-spectral", tag = "v0.2.1" }
+eeg-spectral = { git = "https://github.com/danieltomasz/eeg-spectral", tag = "v0.2.3" }
 gedai = { git = "https://github.com/neurotuning/gedai" }
 
 [tool.ruff]

@@ -985,8 +985,8 @@ wheels = [
 
 [[package]]
 name = "eeg-spectral"
-version = "0.2.1"
-source = { git = "https://github.com/danieltomasz/eeg-spectral?tag=v0.2.1#80a3352b0996cca739f1864067fb692e0e6fdd12" }
+version = "0.2.3"
+source = { git = "https://github.com/danieltomasz/eeg-spectral?tag=v0.2.3#a20885d2d522388da7e87d544793035bc870a2e1" }
 dependencies = [
     { name = "autoreject" },
     { name = "eeglabio" },
@@ -3469,7 +3469,7 @@ dev = [
 requires-dist = [
     { name = "autoreject" },
     { name = "bids", specifier = ">=0.0" },
-    { name = "eeg-spectral", git = "https://github.com/danieltomasz/eeg-spectral?tag=v0.2.1" },
+    { name = "eeg-spectral", git = "https://github.com/danieltomasz/eeg-spectral?tag=v0.2.3" },
     { name = "eeglabio" },
     { name = "gedai", git = "https://github.com/neurotuning/gedai" },
     { name = "ipykernel" },
