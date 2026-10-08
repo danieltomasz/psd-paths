@@ -12,6 +12,7 @@ Each run writes its processed data and outputs to its own folder under
 
 | Folder | Date | Tag | eeg-spectral | Python | Outcome |
 | --- | --- | --- | --- | --- | --- |
+| `runs/v0.3.0-dev` | 2026-10-02 | none (uncommitted, testing_branch) | 0.2.4 | 3.14.8 | 38/38 subjects, 190/190 steps, 17 min. 1-100 Hz, 1 Hz notch, 44 ICA components, muscle threshold 0.70. Test runs made the same day (1-100 Hz with the v0.2.3 ICA; 50 components; 6 Hz notch) were deleted; their results are in `docs/preprocessing-decisions.md`. |
 | `runs/v0.2.3` | 2026-10-01 | v0.2.3 | 0.2.3 | 3.14.7 | 38/38 subjects, all 5 steps complete (190/190), 18 min. First run with the five-step pipeline and the recording-pause fix for all subjects. |
 | `runs/v0.2.1` | 2026-10-01 | v0.2.1 | 0.2.1 (5 subjects: 0.2.2) | 3.13.15 (5 subjects: 3.14.7) | 38/38 subjects complete, 5 of them patched with the pause fix. The folder is no longer on disk. |
 | `runs/v.0.1` | Aug 2026 | before v0.2.0 | local checkout | 3.13 | Made before the epoch fixes in eeg-spectral 0.2.0 (previously `data/derrivatives` and `outputs/`). Not used any more. |
@@ -23,6 +24,83 @@ If a run was patched instead of rerun, its folder contains a `PATCHES.md`.
 
 ### Changed
 
+- New document `docs/preprocessing-decisions.md`: the tests, numbers and
+  literature behind the filter band, the notch, the ICA settings, eye artifact
+  handling and the fit-error columns, with references.
+- ICA (step 03): 44 components for every subject instead of the number
+  explaining 99% of the variance capped at 40 (which gave 17 of 38 subjects in
+  v0.2.3 fewer than 40, as few as 9). 44 is the largest number with at least
+  30 unique samples per squared component in every subject (HAPPE's rule).
+  ICLabel muscle threshold 0.70 instead of 0.80. Step 03 reports the samples
+  per squared component and warns below 30. The component review widget runs
+  only with `review = True` (in the 6 Hz test run it left sub-105 hanging in a
+  pipeline run) and shows spectra up to 100 Hz. Needs eeg-spectral 0.2.4
+  (`variance_threshold=None`). Reasons in `settings.toml` (`[cleaning]`) and
+  `docs/preprocessing-decisions.md`. Together with the 1-100 Hz filter,
+  `runs/v0.3.0-dev` compared with `runs/v0.2.3` (38 subjects, medians,
+  measured channels only):
+  - Components removed 6 -> 14.5 (muscle 1 -> 8, eye 2 -> 3); final epochs
+    78 -> 76.5.
+  - Exponent 1.03 -> 1.16 (higher in 31 subjects); the order of subjects is
+    kept (Spearman rho 0.88 between runs). The change follows each subject's
+    muscle activity (rho 0.80): sub-124 0.71 -> 1.35, sub-106 0.54 -> 0.94,
+    sub-129 0.46 -> 0.71.
+  - Exponent lower in 7 subjects, most in sub-109 (1.76 -> 1.19) and sub-137
+    (1.80 -> 1.70), which had 15 and 9 components in v0.2.3; more eye and
+    channel-noise components are now removed. sub-109's fit error 0.054 ->
+    0.040.
+  - Fit error 0.033 -> 0.032 (lower in 26 subjects). Subjects with good-fit
+    share < 0.9: 6 -> 4. No subject marked Exclude (was sub-106 and sub-129;
+    good-fit share 0.47 -> 0.65 and 0.46 -> 0.85).
+  - Offset nearly unchanged (rho 0.93). Alpha peak frequency 8.87 -> 9.00 Hz
+    (rho 0.99), peak power above the aperiodic fit 0.44 -> 0.49.
+  - Exponent vs age: Spearman -0.38 -> -0.44.
+- Step 01 filters 1-100 Hz instead of 1-40 Hz, and the 50/100 Hz notch is
+  1 Hz wide instead of mne's default 0.25 Hz. A 6 Hz notch (47-53 Hz, as in
+  RELAX) was tested and dropped: it removes the weak line-noise skirt but
+  leaves a gap in every ICA component's spectrum, and ICLabel then calls muscle
+  components "other" (on the same components, muscle p > 0.7: 350 with 1 Hz,
+  261 with 2 Hz, 71 with 6 Hz). 1.5 and 2 Hz removed hardly more line noise
+  than 1 Hz and found 13% and 28% fewer muscle components. The 40 Hz low-pass was there
+  because the notch did not remove the line noise: with the 0.25 Hz notch, 14
+  of 38 subjects kept channels with 50 Hz more than 6 dB above 45-47/53-55 Hz
+  (sub-108: 185 channels). With 1 Hz, no channel in any subject (worst
+  subject, 95th percentile channel: +1.2 dB; 100 Hz removed too). The data now
+  matches what ICLabel was trained on (1-100 Hz, Pion-Tonachini et al. 2019),
+  and muscle activity above 40 Hz stays visible to ICA and to the quality
+  checks. specparam (2-35 Hz) does not use anything above 40 Hz. Bad channels
+  (pyprep, LOF) and autoreject now work on 1-100 Hz data, so both change for
+  all subjects; `lof_threshold` and `fallback_ptp_uv` were set on 1-40 Hz
+  data. Needs eeg-spectral 0.2.4 (`notch_widths` in `raw_filtered`).
+  Diagnostic PSD plots in steps 01 and 02 now go to 110 and 100 Hz.
+  Tested in a run with only this change (ICA as in v0.2.3; the folder was
+  deleted), compared with `runs/v0.2.3` (38 subjects):
+  - Bad channels (step 01): median 9.5 -> 9, most subjects within 1-3
+    channels; the largest change is sub-108, 13 -> 8.
+  - Autoreject before ICA (step 02, which fits on a 125 Hz copy): median
+    peak-to-peak amplitude 43 -> 51 uV, rejected epochs median 6.5 -> 6.5
+    (6 subjects more, 15 fewer, 17 the same; at most 5 epochs). Autoreject sets
+    its thresholds from each recording, so they rise with the amplitude.
+  - Autoreject after ICA (step 04, 1-100 Hz): median 0 rejected in both runs;
+    sub-114 1 -> 6, otherwise at most 2 more. Final epochs median 78 -> 77.5.
+  - Neither change in rejections is related to how much muscle activity a
+    subject has (Spearman rho 0.13 and -0.10).
+  - ICA (same thresholds): ICLabel now finds muscle components. Removed
+    components median 6 -> 12, muscle 1 -> 5.
+  - specparam: median exponent 1.03 -> 1.14 (32 of 38 subjects higher); no
+    subject marked Exclude (was sub-106 and sub-129: good-fit share 0.47 ->
+    0.69 and 0.44 -> 0.53; sub-129 is just above the 0.5 limit).
+- Group report: two columns with the specparam fit error, next to the R^2
+  rule and not used by it (Keep/Exclude is unchanged).
+  `specparam_error_median` is the median over measured channels (interpolated
+  ones left out) of specparam's mean absolute fit error, in log10 power.
+  `specparam_error_z` is how far that is from the other subjects of the run
+  (robust z-score: median and MAD). Reason: R^2 rises with the exponent, because
+  a steeper spectrum leaves more variance to explain, while the error does not
+  (across channels, Spearman rho 0.63 vs -0.11). A subject with a steep spectrum
+  can therefore pass the R^2 rule with poor fits. In the filter-only test run:
+  sub-109 z = 3.1 with good-fit share 1.00. In `runs/v0.3.0-dev`: largest
+  sub-112 and sub-127 (z = 2.1, error 0.045); group median error 0.032.
 - Step 01 no longer uses Hamilton. The notebook calls the preprocessing
   functions from eeg-spectral (`spectral.flows.preprocessing`) one after the
   other: load, drop channels, resample/notch/filter/crop, detect bad channels,
@@ -157,6 +235,24 @@ Not changed yet, because each of these changes results:
   on. Using the epochs for both would be consistent.
 - 03 removes another 3 s at each end of the recording, after 01 already did.
   Only the ECG correlation uses this data.
+- Muscle threshold (checked 2026-10-01 on `runs/v0.2.3`, sub-106, 129, 101,
+  107, without the second autoreject pass). The two excluded subjects differ:
+  - sub-106: flat spectra only at the lower rim and sides of the head (rim
+    exponent 0.17, top 1.19), 10 components labelled muscle of which 9 are kept
+    because their probability is below 0.80. Also removing muscle components
+    with p >= 0.5 gives rim exponent 0.89, 81% well-fitted channels instead of
+    48%, exponent 0.98 instead of 0.56. The exclusion is caused by remaining
+    muscle activity and goes away with better muscle removal.
+  - sub-129: flat spectra over the whole head, half the usual theta and alpha
+    power, 17 interpolated channels, 7 brain components. Removing muscle
+    components hardly helps (49% instead of 47%). This looks like a recording
+    quality problem; exclusion is defensible on that ground, not on R^2 alone.
+  - Normal subjects hardly change (sub-101 identical, sub-107 exponent 1.56 to
+    1.63 with one more muscle component removed).
+- The R^2-based exclusion rule (`specparam_good_fit_share`) follows the
+  exponent (Spearman rho = 0.76 across subjects), so it tends to exclude
+  subjects with flat spectra. An error-based criterion or a check of the
+  reason for each exclusion would avoid that.
 
 ## 0.2.1 - 2026-10-01
 

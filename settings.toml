@@ -9,8 +9,8 @@ path_raw_bids = "/Users/daniel/PhD/Projects/psd-path/data/bids/"
 # be archived, shared or deleted in one piece. For a new run, change the folder
 # name in both lines (e.g. runs/v0.3/...). Earlier runs are not touched.
 # Results from before v0.2 are in data/derrivatives and outputs/.
-derivatives_root = "runs/v0.2.3/derivatives"
-outputs_root     = "runs/v0.2.3/outputs"
+derivatives_root = "runs/v0.3.0-dev/derivatives"
+outputs_root     = "runs/v0.3.0-dev/outputs"
 
 # Derivative layout. Templates may use {derivatives}, {outputs} and {subject}
 # ({subject} expands to e.g. "sub-105").
@@ -117,9 +117,20 @@ channels_to_remove = [
 
 
 [cleaning]
-# ICA, as passed to compute_ica_limited().
-ica_variance_threshold = 0.99   # keep components explaining this much variance
-ica_max_components     = 40     # maximum number of components
+# ICA, as passed to compute_ica_limited(). Same number of components for every
+# subject (limited by the data rank). Until v0.2.3 the number was the one
+# explaining 99% of the variance, capped at 40: 12 of 38 subjects got fewer
+# than 40 (as few as 10), because blinks dominate the variance; reducing the
+# data this way harms the decomposition (Artoni et al. 2018). 44 is the largest
+# number for which every subject has at least 30 unique samples per squared
+# component (overlapping epoch parts counted once), the rule HAPPE uses
+# (Gabard-Durnam et al. 2018, after Onton & Makeig): 45 meets it in 35/38
+# subjects, 50 in 6/38. Step 03 reports subjects below it. Tested on the
+# 1-100 Hz data (two seeds): 40 and 50 components give the same specparam fit
+# error; 50 removed more of the 30-40 Hz muscle band (-28% vs -16%) with
+# slightly lower seed stability (mean share of components matched |r| > 0.95:
+# 0.946 vs 0.958; 60: 0.930).
+ica_n_components       = 44
 ica_random_state       = 97
 # Method and fit parameters are set inside compute_ica_limited():
 #   method="picard", fit_params=dict(ortho=False, extended=True)
@@ -141,9 +152,17 @@ ecg_reject_labels = ["brain"]
 # and cleaning removed only 1.5% of its delta power. ICLabel classifies blinks reliably
 # below 0.80, so eye blink has a lower threshold. The other classes overlap more
 # with brain activity and keep 0.80.
+# Muscle: 0.70 since the 1-100 Hz data (ICLabel sees muscle above 40 Hz).
+# Tested on the 1-100 Hz data (1 Hz notch) with 40 and 50 components:
+# components with muscle p 0.7-0.8 have a muscle-like spectrum (log-log slope
+# 7-70 Hz > -0.59, the Fitzgibbon criterion used in RELAX) in 84-93% of cases
+# and none has brain p > 0.3; below 0.7 some do (16 components with 40 ICs, 17
+# with 50). The specparam fit error is the same at 0.5, 0.7 and 0.8 (50 ICs:
+# median MAE 0.0335-0.0338; all subjects within 5% between 0.7 and 0.8);
+# removing muscle at all lowers it (none: 0.0351).
 [cleaning.ica_label_thresholds]
 "eye blink"       = 0.50
-"muscle artifact" = 0.80
+"muscle artifact" = 0.70
 "heart beat"      = 0.80
 "line noise"      = 0.80
 "channel noise"   = 0.80
@@ -185,3 +204,6 @@ min_epochs_after_ar = 10
 # channels have a specparam fit with R^2 of at least min_r_squared.
 min_r_squared             = 0.9
 min_good_channel_fraction = 0.5
+# The report also lists each subject's median fit error and its robust z-score
+# against the run (specparam_error_median, specparam_error_z). They are shown
+# only, not used for Keep/Exclude: R^2 rises with the exponent, the error does not.

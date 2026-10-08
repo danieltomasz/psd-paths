@@ -7,7 +7,9 @@ is a Jupyter notebook in `templates/`, run for every subject with papermill. The
 processing functions are in a separate package,
 [eeg-spectral](https://github.com/danieltomasz/eeg-spectral), installed at a
 fixed version. Changes and analysis decisions are recorded in
-[CHANGELOG.md](CHANGELOG.md).
+[CHANGELOG.md](CHANGELOG.md); the tests and literature behind the filtering,
+line-noise and ICA settings are in
+[docs/preprocessing-decisions.md](docs/preprocessing-decisions.md).
 
 ## Setup
 
@@ -59,7 +61,7 @@ means rerunning 01-05 for that subject.
 
 | Step | Notebook | What it does | Main output (per subject) |
 | --- | --- | --- | --- |
-| 01 | `01_Preprocessing` | Load the recording, drop unused channels, resample to 250 Hz, notch 50/100 Hz, filter 1-40 Hz, detect bad channels (pyprep and LOF), average reference | `derivatives/processed/sub-XXX/sub-XXX_annotated_filtered_raw.fif` |
+| 01 | `01_Preprocessing` | Load the recording, drop unused channels, resample to 250 Hz, notch 50/100 Hz (1 Hz wide), filter 1-100 Hz, detect bad channels (pyprep and LOF), average reference | `derivatives/processed/sub-XXX/sub-XXX_annotated_filtered_raw.fif` |
 | 02 | `02_Epochs` | 5 s epochs (1.5 s overlap), drop epochs in recording pauses, reject bad epochs with autoreject | `derivatives/epochs/sub-XXX/sub-XXX_good_epochs-epo.fif` |
 | 03 | `03_ICA_fit` | ICA, ICLabel classification, automatic selection of the components to remove, optional manual review | `derivatives/analysis/sub-XXX/sub-XXX_ica-decision.json` |
 | 04 | `04_ICA_apply_interpolate` | Remove the selected components, second autoreject pass, interpolate bad channels | `derivatives/analysis/sub-XXX/sub-XXX_interpolated-epo.fif`, `outputs/specparam/sub-XXX/sub-XXX_ica_metadata.csv` |
@@ -100,7 +102,9 @@ kernel), `[experiment]` (BIDS task and session), `[preprocessing]`, `[epochs]`,
 
 ## Manual ICA review
 
-1. Open `templates/03_ICA_fit.ipynb`, set `subject_id` and run it.
+1. Open `templates/03_ICA_fit.ipynb`, set `subject_id` and `review = True` in
+   the parameter cell, and run it. (The pipeline runs it with `review = False`,
+   so the widget is skipped there.)
 2. In the last section, go through the components, mark the ones to remove and
    press "Save decision". The choice is saved in the decision file next to the
    automatic one.
